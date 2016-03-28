@@ -4,8 +4,12 @@ import colossus.IOSystem
 import colossus.core._
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.UrlParsing.Root
-import colossus.protocols.http.{Http, HttpService}
-import colossus.service.ServiceConfig
+import colossus.protocols.http.{UrlParsing, HttpService}
+import colossus.service.{Callback, ServiceConfig}
+
+
+import UrlParsing._
+import Callback.Implicits._
 
 
 /**
@@ -13,12 +17,19 @@ import colossus.service.ServiceConfig
   */
 object PersonService {
 
+  // the name of our service
+  val name = "person-service"
+
+  /**
+    * The actual person service handler
+    * @param context the current connection context
+    */
   class Service(context: ServerContext) extends HttpService(ServiceConfig(), context) {
     def handle = {
-      case req @ Get on Root => req.ok("Hello World!")
+      case req @ Get on Root =>
+        req.ok("Hello World!")
     }
   }
-
 
   /**
     * Start the person service
@@ -28,7 +39,9 @@ object PersonService {
     * @return Reference to the new server
     */
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
-    Server.start("person-service", port) { worker =>
+    println(s"Starting $name on $port")
+
+    Server.start(name, port) { worker =>
       new Initializer(worker) {
         def onConnect = (context) => new Service(context)
       }
