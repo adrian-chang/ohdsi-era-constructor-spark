@@ -1,8 +1,18 @@
 package com.github.amchang.ohdsi
 
+import colossus.IOSystem
+import com.github.amchang.ohdsi.service.PersonService
+
 /**
-  * Created by achang on 3/26/16.
+  * Start point for the entire program
   */
 object Main {
+
+  def main(args: Array[String]) {
+    implicit val io = IOSystem()
+
+    // just for people queries
+    PersonService.start(9001)
+  }
 
 }
