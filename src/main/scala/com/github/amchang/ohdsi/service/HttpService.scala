@@ -2,12 +2,10 @@ package com.github.amchang.ohdsi.service
 
 import colossus.IOSystem
 import colossus.core._
-import colossus.protocols.http.HttpMethod.Get
-import colossus.protocols.http.UrlParsing.Root
 import colossus.protocols.http.{Http, HttpRequest, HttpResponse, HttpService, UrlParsing}
 import colossus.service.{Callback, ServiceConfig}
-import UrlParsing._
-import Callback.Implicits._
+
+import com.github.amchang.ohdsi.route.{ConditionDrugRoute, EventRoute, PersonRoute}
 
 
 /**
@@ -23,10 +21,15 @@ object HttpService {
     * @param context the current connection context
     */
   class Service(context: ServerContext) extends HttpService(ServiceConfig(), context) {
-    def handle  = {
-      case req @ Get on Root =>
-        req.ok("Hello World!")
-    }
+
+    /**
+      * Handle all of the routes here
+      * @return handle to handle all routes
+      */
+    def handle  =
+      PersonRoute.route orElse
+      EventRoute.route orElse
+      ConditionDrugRoute.route
   }
 
   /**

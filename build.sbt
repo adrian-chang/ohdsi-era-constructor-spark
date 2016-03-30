@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).
     name := "ohdsi-project",
     version := "1.0",
     scalaVersion := "2.11.7"
-  )
+  ).enablePlugins(DockerPlugin)
 
 libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-core"  % "1.6.1" % "provided",

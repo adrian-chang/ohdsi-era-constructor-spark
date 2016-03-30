@@ -7,19 +7,17 @@ import colossus.service.Callback
 import Callback.Implicits._
 import UrlParsing._
 
-
 /**
-  * Handle queries related to a iris_person
+  * Handle iris_dx_rx
   */
-object PersonRoute extends Route {
+object ConditionDrugRoute extends Route {
 
   /**
-    * Handle /person routes
+    * Handle /conditionDrug routes
     * @return a partial function to handle routes
     */
   def route: PartialFunction[HttpRequest, Callback[HttpResponse]] = {
-    case req @ Get on Root / "person" =>
-      req.ok("fo1o").withHeader("Content-Type", "application/json")
+    case req @ Get on Root / "conditionDrug" =>
+      req.ok("foo")
   }
-
 }
