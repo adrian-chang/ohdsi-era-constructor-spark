@@ -1,0 +1,11 @@
+version: '2'
+services:
+  web:
+    build: .
+    command: sbt/sbt run
+    volumes:
+      - .:/app
+    ports:
+      - '9001:9001'
+    extra_hosts:
+      - "database:10.0.2.2"
