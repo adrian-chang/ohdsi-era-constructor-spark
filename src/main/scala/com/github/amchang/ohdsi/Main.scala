@@ -1,7 +1,8 @@
 package com.github.amchang.ohdsi
 
+import akka.actor.ActorSystem
 import colossus.IOSystem
-import com.github.amchang.ohdsi.service.PersonService
+import com.github.amchang.ohdsi.service.HttpService
 import com.typesafe.config.ConfigFactory
 
 /**
