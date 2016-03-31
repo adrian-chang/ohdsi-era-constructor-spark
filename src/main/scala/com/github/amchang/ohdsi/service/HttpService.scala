@@ -20,16 +20,16 @@ object HttpService {
     * The actual person service handler
     * @param context the current connection context
     */
-  class Service(context: ServerContext) extends HttpService(ServiceConfig(), context) {
+  class Service(context: ServerContext, worker: WorkerRef) extends HttpService(ServiceConfig(), context) {
 
     /**
       * Handle all of the routes here
       * @return handle to handle all routes
       */
     def handle  =
-      PersonRoute.route orElse
-      EventRoute.route orElse
-      ConditionDrugRoute.route
+      PersonRoute.route(worker) orElse
+      EventRoute.route(worker) orElse
+      ConditionDrugRoute.route(worker)
   }
 
   /**
@@ -42,7 +42,7 @@ object HttpService {
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port) { worker =>
       new Initializer(worker) {
-        def onConnect = (context) => new Service(context)
+        def onConnect = (context) => new Service(context, worker)
       }
     }
   }

@@ -1,25 +1,29 @@
 package com.github.amchang.ohdsi.model
 
-import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
+import scala.concurrent.{ExecutionContext, Future}
+
+import ExecutionContext.Implicits.global
 
 /**
   * Manage everything related to dealing with people
   */
-object PersonModel {
+object PersonModel extends Model {
 
-  def process = {
-    val conf = new SparkConf().setAppName("ohdsi").setMaster("local[2]")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
-    val jdbcDF = sqlContext.read.format("jdbc").options(
-      Map(
-        "url" -> "jdbc:postgresql://localhost:5432/ohdsi",
-        "driver" -> "org.postgresql.Driver",
-        "dbtable" -> "person"
-      )).load()
+  /**
+    * What table are we looking in the database for
+    */
+  private val table = "person"
 
-    println(jdbcDF.rdd.count())
+  /**
+    * Get the stats her like iris
+    * @return a future json object to return the results or an error
+    */
+  def stats: Future[Option[String]] = {
+    Future {
+      val df = loadTable(table)
+      df.count().toString
+    }
   }
 
 }

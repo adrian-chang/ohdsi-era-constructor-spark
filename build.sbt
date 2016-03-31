@@ -17,11 +17,18 @@ libraryDependencies ++= Seq(
   // web server
   "com.tumblr" %% "colossus" % "0.7.0",
   // config items
-  "com.typesafe" % "config" % "1.3.0"
+  "com.typesafe" % "config" % "1.3.0",
+  // test
+  "org.specs2" %% "specs2-core" % "3.7.2" % "test",
+  "org.scalamock" %% "scalamock-specs2-support" % "3.2.2" % "test",
+  // postgres
+  "org.postgresql" % "postgresql" % "9.4.1208"
 )
 
-// make a docker image
-enablePlugins(DockerPlugin)
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
 
 dockerfile in docker := {
   // The assembly task generates a fat JAR file
