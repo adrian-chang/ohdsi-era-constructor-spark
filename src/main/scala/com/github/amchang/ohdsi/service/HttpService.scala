@@ -14,7 +14,7 @@ import com.github.amchang.ohdsi.route.{ConditionDrugRoute, EventRoute, PersonRou
 object HttpService {
 
   // the name of our service
-  val name = "person-service"
+  private val name = "http-service"
 
   /**
     * The actual person service handler
@@ -40,8 +40,6 @@ object HttpService {
     * @return Reference to the new server
     */
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
-    println(s"Starting $name on $port")
-
     Server.start(name, port) { worker =>
       new Initializer(worker) {
         def onConnect = (context) => new Service(context)

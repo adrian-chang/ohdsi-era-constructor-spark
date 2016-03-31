@@ -19,5 +19,5 @@ object MeasurementConditionDrugRoute extends Route {
     case req @ Get on Root / "person" =>
       req.ok("fo1o").withHeader("Content-Type", "application/json")
   }
-  
+
 }
