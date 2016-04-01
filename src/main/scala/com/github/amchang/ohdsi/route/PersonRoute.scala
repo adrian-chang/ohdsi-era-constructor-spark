@@ -18,10 +18,10 @@ object PersonRoute extends Route {
     *
     * @return a partial function to handle routes
     */
-  def route(workerRef: WorkerRef): PartialFunction[HttpRequest, Callback[HttpResponse]] = {
+  def route(worker: WorkerRef): PartialFunction[HttpRequest, Callback[HttpResponse]] = {
     // root person action
     case req @ Get on Root / "person" =>
-      implicit val executor = workerRef.callbackExecutor
+      implicit val executor = worker.callbackExecutor
       Callback.fromFuture(PersonModel.stats).map { result =>
         req.ok(result)
           .withHeader("Content-Type", "application/json")

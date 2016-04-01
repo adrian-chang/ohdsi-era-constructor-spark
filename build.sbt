@@ -9,18 +9,20 @@ lazy val root = (project in file(".")).
     scalaVersion := "2.11.7"
   ).enablePlugins(DockerPlugin)
 
+resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
+
 libraryDependencies ++= Seq(
-  "org.apache.spark"  %% "spark-core"  % "1.6.1" % "provided",
-  "org.apache.spark"  %% "spark-sql" % "1.6.1" % "provided",
-  "org.apache.spark"  %% "spark-mllib"  % "1.6.1" % "provided",
-  "org.apache.spark"  %% "spark-graphx" % "1.6.1" % "provided",
+  "org.apache.spark"  %% "spark-core"  % "1.6.1",
+  "org.apache.spark"  %% "spark-sql" % "1.6.1",
+  "org.apache.spark"  %% "spark-mllib"  % "1.6.1",
+  "org.apache.spark"  %% "spark-graphx" % "1.6.1",
   // web server
   "com.tumblr" %% "colossus" % "0.7.0",
   // config items
   "com.typesafe" % "config" % "1.3.0",
   // test
-  "org.specs2" %% "specs2-core" % "3.7.2" % "test",
-  "org.scalamock" %% "scalamock-specs2-support" % "3.2.2" % "test",
+  "org.scalactic" %% "scalactic" % "2.2.6",
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   // postgres
   "org.postgresql" % "postgresql" % "9.4.1208",
   "io.spray" %%  "spray-json" % "1.3.2"

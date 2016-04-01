@@ -35,6 +35,15 @@ trait Model {
   def stats: Future[String]
 
   /**
+    * Easy way to profile code
+    * @param code the code to profile
+    * @param t time now
+    * @tparam E result from the code running
+    * @return results from code block
+    */
+  protected def profile[E](code: => E, t: Long = System.currentTimeMillis()) = (code, System.currentTimeMillis() - t)
+
+  /**
     * Load a table from a database
     * @param tableName the table to load
     * @return a dataframe of the corresponding table
