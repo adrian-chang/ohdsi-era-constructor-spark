@@ -1,8 +1,8 @@
 package com.github.amchang.ohdsi.model
 
 
-import scala.concurrent.{ExecutionContext, Future}
-import ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import spray.json._
 import DefaultJsonProtocol._
