@@ -23,7 +23,7 @@ object PersonRoute extends Route {
     case req @ Get on Root / "person" =>
       implicit val executor = workerRef.callbackExecutor
       Callback.fromFuture(PersonModel.stats).map { result =>
-        req.ok(result.get)
+        req.ok(result)
           .withHeader("Content-Type", "application/json")
       }
   }

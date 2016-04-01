@@ -14,7 +14,7 @@ object MeasurementConditionDrugRoute extends Route {
 
   /**
     * Handle /measurementConditionDrug
- *
+    *
     * @return a partial function to handle routes
     */
   def route(worker: WorkerRef): PartialFunction[HttpRequest, Callback[HttpResponse]] = {

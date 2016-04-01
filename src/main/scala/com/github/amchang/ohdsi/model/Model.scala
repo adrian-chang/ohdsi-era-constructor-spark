@@ -18,7 +18,15 @@ trait Model {
     .setAppName("ohdsi")
     .setMaster("local[2]")
 
+  /**
+    * General spark context
+    */
   private val sparkContext = new SparkContext(sparkConfig)
+
+  /**
+    * General sql context
+    */
+  private val sqlContext = new SQLContext(sparkContext)
 
   /**
     * The intended replacement route for the project
@@ -32,8 +40,6 @@ trait Model {
     * @return a dataframe of the corresponding table
     */
   protected def loadTable(tableName: String): DataFrame ={
-    val sc = sparkContext
-    val sqlContext = new SQLContext(sc)
     sqlContext
       .read
       .format("jdbc")

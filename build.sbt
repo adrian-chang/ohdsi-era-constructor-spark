@@ -22,8 +22,12 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-core" % "3.7.2" % "test",
   "org.scalamock" %% "scalamock-specs2-support" % "3.2.2" % "test",
   // postgres
-  "org.postgresql" % "postgresql" % "9.4.1208"
+  "org.postgresql" % "postgresql" % "9.4.1208",
+  "io.spray" %%  "spray-json" % "1.3.2"
 )
+
+// command c
+fork in run := true
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard

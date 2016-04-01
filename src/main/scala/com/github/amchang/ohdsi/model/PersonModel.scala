@@ -1,9 +1,12 @@
 package com.github.amchang.ohdsi.model
 
+import org.apache.spark
 import org.apache.spark.{SparkConf, SparkContext}
+
 import scala.concurrent.{ExecutionContext, Future}
 
-import ExecutionContext.Implicits.global
+import spray.json._
+import DefaultJsonProtocol._
 
 /**
   * Manage everything related to dealing with people
@@ -15,14 +18,23 @@ object PersonModel extends Model {
     */
   private val table = "person"
 
+  def profile[E](code: => E, t: Long = System.currentTimeMillis()) = (code, System.currentTimeMillis() - t)
+
   /**
-    * Get the stats her like iris
+    * Get the count of people
     * @return a future json object to return the results or an error
     */
-  def stats: Future[Option[String]] = {
+  def stats: Future[String] = {
     Future {
-      val df = loadTable(table)
-      df.count().toString
+      val (result, time) = profile {
+        val df = loadTable(table)
+        df.count()
+      }
+      time.toString
+      Map(
+        "result" -> result,
+        "executionTime" -> time
+      ).toJson.compactPrint
     }
   }
 
