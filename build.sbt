@@ -9,8 +9,6 @@ lazy val root = (project in file(".")).
     scalaVersion := "2.11.7"
   ).enablePlugins(DockerPlugin)
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
-
 libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-core"  % "1.6.1",
   "org.apache.spark"  %% "spark-sql" % "1.6.1",

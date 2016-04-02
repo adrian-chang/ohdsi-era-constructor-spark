@@ -4,8 +4,7 @@ import colossus.IOSystem
 import colossus.core._
 import colossus.protocols.http.{Http, HttpRequest, HttpResponse, HttpService, UrlParsing}
 import colossus.service.{Callback, ServiceConfig}
-
-import com.github.amchang.ohdsi.route.{ConditionDrugRoute, EventRoute, PersonRoute}
+import com.github.amchang.ohdsi.route.{AllRoute, Health, HealthRoute}
 
 
 /**
@@ -18,18 +17,19 @@ object HttpService {
 
   /**
     * The actual person service handler
+ *
     * @param context the current connection context
     */
   class Service(context: ServerContext, worker: WorkerRef) extends HttpService(ServiceConfig(), context) {
 
     /**
       * Handle all of the routes here
+ *
       * @return handle to handle all routes
       */
     def handle  =
-      PersonRoute.route(worker) orElse
-      EventRoute.route(worker) orElse
-      ConditionDrugRoute.route(worker)
+      AllRoute.route(worker) orElse
+      HealthRoute.route(worker)
   }
 
   /**
