@@ -9,7 +9,7 @@ import com.typesafe.config.{ConfigFactory}
 object Main {
 
   def main(args: Array[String]) {
-    val name = "pulmonary oil microembolism"
+    val name = "Hodgkin's sarcoma of spleen"
     KeywordList.build(name)
   }
 

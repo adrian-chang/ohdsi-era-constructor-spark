@@ -54,9 +54,8 @@ object KeywordList extends Spark {
     * @return keyword and ignore lists
     */
   private def findKeywordIgnoreList(concepts: RDD[(ConceptId, ConceptName)]): (Option[List[String]], Option[List[String]]) = {
-    val results = unionTop(concepts)
-    val first = results.first
-    val boo = 1
+    val top = unionTop(concepts)
+
     /*val conceptsBroadcast = sparkContext.broadcast(concepts)
     val allConceptsBroadcast = sparkContext.broadcast(loadAllConcept())
 
@@ -96,7 +95,6 @@ object KeywordList extends Spark {
     // join and map down
     val conceptAncestor = concepts.join(allAncestor).map {
       case (conceptId, (conceptName, descendantId)) =>
-        println(conceptId)
         println(descendantId, conceptId)
         (descendantId, (conceptId, conceptName))
     }
@@ -110,8 +108,7 @@ object KeywordList extends Spark {
   }
 
   /**
-    * Bottom
-    *
+    * Bottom half of the union
     * @return
     */
   private def unionBottom(): RDD[(ConceptId, ConceptName, DescendantConceptId, RelatedConceptName)] = {
@@ -179,6 +176,7 @@ object KeywordList extends Spark {
     */
   private def findConcept(conceptName: String): RDD[(ConceptId, ConceptName)] = {
     val concept = loadConceptCsv
+    val findName = sparkContext.broadcast(conceptName)
 
     // find the concept directly
     concept
@@ -190,11 +188,11 @@ object KeywordList extends Spark {
         val invalidReasonIsNull = row.getString(9).isEmpty
 
         // the logic
-        if (conceptName == cName &&
+        if (cName == findName.value &&
             sConcept == "s" &&
             invalidReasonIsNull &&
             domainId == "condition") {
-          (conceptId, conceptName)
+          (conceptId, cName)
         } else {
           null
         }
@@ -211,13 +209,15 @@ object KeywordList extends Spark {
     val conceptSynonym = csvReader
         .load(getVocabDir("CONCEPT_SYNONYM.csv"))
 
+    val name = sparkContext.broadcast(conceptName)
+
     // find the concept directly
     val remainder = sparkContext.broadcast(conceptSynonym
       .map { row =>
         val conceptId = row.getString(0).toLowerCase
         val synonym = row.getString(1).toLowerCase
 
-        if (synonym == conceptName) {
+        if (synonym == name.value) {
           conceptId
         } else {
           null
