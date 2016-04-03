@@ -14,16 +14,15 @@ libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-sql" % "1.6.1",
   "org.apache.spark"  %% "spark-mllib"  % "1.6.1",
   "org.apache.spark"  %% "spark-graphx" % "1.6.1",
-  // web server
-  "com.tumblr" %% "colossus" % "0.7.0",
   // config items
   "com.typesafe" % "config" % "1.3.0",
   // test
   "org.scalactic" %% "scalactic" % "2.2.6",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
-  // postgres
-  "org.postgresql" % "postgresql" % "9.4.1208",
-  "io.spray" %%  "spray-json" % "1.3.2"
+  // json
+  "io.spray" %% "spray-json" % "1.3.2",
+  // csv
+  "com.databricks" %% "spark-csv" % "1.4.0"
 )
 
 // command c
