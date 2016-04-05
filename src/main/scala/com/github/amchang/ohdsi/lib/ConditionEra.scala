@@ -7,6 +7,7 @@ import org.joda.time.{Days, Interval}
 
 /**
   * Replicate the functionality within
+  *
   * https://github.com/OHDSI/Era-Constructor/blob/master/v5/PostgreSQL/postgres_v5_condition_era.sql
   */
 object ConditionEra extends Spark with Era {
@@ -20,6 +21,11 @@ object ConditionEra extends Spark with Era {
   type Count = Int
 
   /**
+    * Store the most recent result
+    */
+  private var mostRecentResult: RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)] = null
+
+  /**
     * Build an entire era for drugs
     *
     * @return RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)], similar to the results from
@@ -30,7 +36,7 @@ object ConditionEra extends Spark with Era {
       csvDataReader.load(getDataFile("CDM_CONDITION_OCCURRENCE.csv"))
         .cache
 
-    conditionOccurrence
+    mostRecentResult = conditionOccurrence
       .map(mapToPersonIdConceptId)
       .reduceByKey(_ ++ _)
       .map {
@@ -86,6 +92,8 @@ object ConditionEra extends Spark with Era {
           (personId, conditionConceptId, startDateEra.getMillis * -1)
       }
       .cache
+
+    mostRecentResult
   }
 
   /**

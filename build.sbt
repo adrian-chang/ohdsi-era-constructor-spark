@@ -6,8 +6,10 @@ lazy val root = (project in file(".")).
   settings(
     name := "ohdsi-project",
     version := "1.0",
-    scalaVersion := "2.11.7"
+    scalaVersion := "2.11.8"
   ).enablePlugins(DockerPlugin)
+
+resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 
 libraryDependencies ++= Seq(
   "org.apache.spark"  %% "spark-core"  % "1.6.1",
@@ -24,7 +26,10 @@ libraryDependencies ++= Seq(
   // csv
   "com.databricks" %% "spark-csv" % "1.4.0",
   // time
-  "com.github.nscala-time" %% "nscala-time" % "2.12.0"
+  "com.github.nscala-time" %% "nscala-time" % "2.12.0",
+  // save files
+  "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
+  "com.github.pathikrit" %% "better-files" % "2.15.0"
 )
 
 // command c

@@ -32,7 +32,6 @@ trait Spark {
     */
   protected val config = ConfigFactory.load()
 
-
   /**
     * Generic csv reader to vocab or data reader
     * @return a dataframe reader for csvs
@@ -79,6 +78,15 @@ trait Spark {
     */
   protected def getDataFile(file: String): String = {
     config.getString("ohdsi.data") + file
+  }
+
+  /**
+    * Get a cache location where we can save rdds
+    * @param file the file to get
+    * @return the string location
+    */
+  protected def getCacheFile(file: String): String = {
+    config.getString("ohdsi.cache") + s"/cache/${file}"
   }
 
 }

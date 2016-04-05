@@ -1,7 +1,7 @@
 package com.github.amchang.ohdsi
 
-import com.github.amchang.ohdsi.lib.ConditionEra
-import com.typesafe.config.ConfigFactory
+import com.github.amchang.ohdsi.lib.{ConditionEra, DoseEra}
+import com.github.amchang.ohdsi.lib.ConditionEra.{ConditionConceptId, Count}
 
 /**
   * Start point for the entire program
@@ -14,8 +14,8 @@ object Main {
     *             See the README.me for all command line arguments, or application.conf
     */
   def main(args: Array[String]) {
-    val b = ConditionEra.build
-    val c = 1
+    //ConditionEra.build
+    DoseEra.build
   }
 
 }

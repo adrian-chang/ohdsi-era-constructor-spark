@@ -5,8 +5,5 @@ package com.github.amchang.ohdsi.lib
   */
 trait Era {
 
-  /**
-    * Build an entire era
-*/
 
 }
