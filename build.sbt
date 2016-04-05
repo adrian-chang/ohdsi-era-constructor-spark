@@ -22,7 +22,9 @@ libraryDependencies ++= Seq(
   // json
   "io.spray" %% "spray-json" % "1.3.2",
   // csv
-  "com.databricks" %% "spark-csv" % "1.4.0"
+  "com.databricks" %% "spark-csv" % "1.4.0",
+  // time
+  "com.github.nscala-time" %% "nscala-time" % "2.12.0"
 )
 
 // command c
