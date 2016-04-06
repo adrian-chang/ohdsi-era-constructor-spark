@@ -37,7 +37,6 @@ object DoseEra extends Spark with Era {
   def build = {
     // the entire data
     val netData = createInitialData
-    val b = 1
   }
 
   /**
