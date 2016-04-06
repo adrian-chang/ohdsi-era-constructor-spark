@@ -3,10 +3,8 @@ package com.github.amchang.ohdsi.lib
 import java.nio.file.{Files, Paths}
 
 import com.github.nscala_time.time.Imports._
-import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
-
 
 
 /**
@@ -66,7 +64,7 @@ object DoseEra extends Spark with Era {
           (personId, drugConceptId)
       }
       .cache
-    
+
     result
   }
 
