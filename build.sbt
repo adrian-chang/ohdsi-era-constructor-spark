@@ -28,7 +28,6 @@ libraryDependencies ++= Seq(
   // time
   "com.github.nscala-time" %% "nscala-time" % "2.12.0",
   // save files
-  "org.scala-lang.modules" %% "scala-pickling" % "0.10.1",
   "com.github.pathikrit" %% "better-files" % "2.15.0"
 )
 

@@ -41,35 +41,7 @@ object ConditionEra extends Spark with Era {
       .reduceByKey(_ ++ _)
       .map {
         case ((personId, conditionConceptId), startDateEndDateList) =>
-          var sortedStartEndDateList = startDateEndDateList.sortBy(_._1)
-          // the one i'm currently looking at
-          var currentRange = sortedStartEndDateList.head
-          var currentAmount = 1
-          // use the head as the starting point
-          sortedStartEndDateList = sortedStartEndDateList diff List(currentRange)
-          var finalCombine = List[((DateTime, DateTime), ConditionConceptId)]()
-
-          while (sortedStartEndDateList.nonEmpty) {
-            // get the next one
-            val (startStartDate, startEndDate) = currentRange
-            val (endStartDate, endEndDate) = sortedStartEndDateList.head
-            // is it less than 30 days? keep going then
-            if (new Interval(startStartDate, startEndDate.plusDays(30)).overlaps(new Interval(endStartDate, endEndDate))) {
-              currentRange = (startStartDate, if (endEndDate.isAfter(startEndDate)) endEndDate else startEndDate)
-              currentAmount = currentAmount + 1
-            } else {
-              finalCombine = finalCombine ++ List((currentRange, currentAmount))
-              currentAmount = 1
-              currentRange = (endStartDate, endEndDate)
-            }
-
-            // remove the head
-            sortedStartEndDateList = sortedStartEndDateList diff List(sortedStartEndDateList.head)
-          }
-          // fence case
-          finalCombine = finalCombine ++ List((currentRange, currentAmount))
-
-          ((personId, conditionConceptId), finalCombine)
+          ((personId, conditionConceptId), rangeBuilder(startDateEndDateList))
       }
       .flatMap {
         // find the count of net ranges

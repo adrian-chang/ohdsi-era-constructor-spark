@@ -20,7 +20,7 @@ object DoseEra extends Spark with Era {
   type DescendantConceptId = Int
   type DrugExposureId = Int
   type PersonId = Int
-  type IngredientConceptId = Int
+  type DrugConceptId = Int
   type UnitConceptId = String
   type DoseValue = String
   type DrugExposureStartDate = DateTime
@@ -29,22 +29,54 @@ object DoseEra extends Spark with Era {
 
   // use these for none values
   private val emptyConceptId = (-1, -1)
-  private val emptyDrugRecord = (-1, -1, -1, "", "", null, "", null)
+  private val emptyDrugRecord = ((-1, -1, "", ""),  List[(DateTime, DateTime)]())
 
   /**
     * Build Dosage Eras
     */
   def build = {
     // the entire data
-    val netData = createInitialData
+    val bareData = createInitialData
+
+    val result = bareData
+      .reduceByKey(_ ++ _)
+      .map {
+        case ((personId, drugConceptId, unitConceptId, doseValue), dateList) =>
+          ((personId, drugConceptId, unitConceptId, doseValue), rangeBuilder(dateList))
+      }
+      .flatMap {
+      // find the count of net ranges
+      case (((personId, drugConceptId, unitConceptId, doseValue), finalCombine)) =>
+        finalCombine.map {
+          case ((firstDate, secondDate), count) =>
+            // differs slightly from project, no count
+            (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
+        }
+      }
+      // get rid of dups
+      .distinct
+      .map{
+        // flatten out everything with the count
+        case (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate) =>
+          (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
+      }
+      .sortBy {
+        // sort by person id, conditionConceptId, and startDateEra desc
+        case (personId, drugConceptId, unitConceptId, doseValue, startDate, endDate) =>
+          (personId, drugConceptId)
+      }
+      .cache
+    
+    result
   }
 
   /**
     * Create the initial set of data to use for later merging
+    *
+    * @return the rdd to build eras from
     */
   private def createInitialData: RDD[
-    (DrugExposureId, PersonId, IngredientConceptId, UnitConceptId, DoseValue,
-      DrugExposureStartDate, DaysSupply, DrugExposureEndDate)
+      ((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])
     ] = {
     val descendantConceptMappings = remainingConceptIds
     val drugExposure = loadDrugExposure
@@ -57,10 +89,7 @@ object DoseEra extends Spark with Era {
       // key safety
       if (remainderMap.contains(drugConceptId)) {
         val formatter = DateTimeFormat.forPattern("yyyyMMdd")
-
-        val drugExposureId = row.getString(0).toInt
         val personId = row.getString(1).toInt
-
         val drugExposureStartDate = formatter.parseDateTime(row.getString(3))
 
         // deal with the end date, if no end date
@@ -77,11 +106,11 @@ object DoseEra extends Spark with Era {
         }
 
         // following two can be blank, and there's no sql code substitution
-        val doseUnitConceptId = row.getString(13)
-        val effectiveDrugDose = row.getString(12)
+        val unitConceptId = row.getString(13)
+        val doseValue = row.getString(12)
 
-        (drugExposureId, personId, remainderMap.get(drugConceptId).get, doseUnitConceptId,
-          effectiveDrugDose, drugExposureStartDate, daysSupply, drugExposureEndDate)
+        ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue),
+          List((drugExposureStartDate, drugExposureEndDate)))
       } else {
         emptyDrugRecord
       }
