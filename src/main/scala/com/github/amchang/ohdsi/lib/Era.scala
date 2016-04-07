@@ -13,7 +13,7 @@ trait Era {
     * @param startDateEndDateList the list of start and end date pairs
     * @return List[(DateTime, DateTime), Int] ranges, where int is amount within a range
     */
-  protected def rangeBuilder(startDateEndDateList: List[(DateTime, DateTime)]): List[((DateTime, DateTime), Int)] = {
+  protected def rangeBuilder(startDateEndDateList: List[(DateTime, DateTime)], daysOverlap: Int = 30): List[((DateTime, DateTime), Int)] = {
     var sortedStartEndDateList = startDateEndDateList.sortBy(_._1)
     // the one i'm currently looking at
     var currentRange = sortedStartEndDateList.head
@@ -27,7 +27,7 @@ trait Era {
       val (startStartDate, startEndDate) = currentRange
       val (endStartDate, endEndDate) = sortedStartEndDateList.head
       // is it less than 30 days? keep going then
-      if (new Interval(startStartDate, startEndDate.plusDays(30)).overlaps(new Interval(endStartDate, endEndDate))) {
+      if (new Interval(startStartDate, startEndDate.plusDays(daysOverlap)).overlaps(new Interval(endStartDate, endEndDate))) {
         currentRange = (startStartDate, if (endEndDate.isAfter(startEndDate)) endEndDate else startEndDate)
         currentAmount = currentAmount + 1
       } else {
