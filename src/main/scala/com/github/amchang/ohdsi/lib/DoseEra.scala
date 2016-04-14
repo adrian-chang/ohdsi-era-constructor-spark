@@ -3,8 +3,10 @@ package com.github.amchang.ohdsi.lib
 import java.nio.file.{Files, Paths}
 
 import com.github.nscala_time.time.Imports._
+import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SQLContext}
 
 
 /**
@@ -12,7 +14,14 @@ import org.apache.spark.sql.DataFrame
   *
   * https://github.com/OHDSI/Era-Constructor/blob/master/v5/PostgreSQL/postgres_v5_dose_era.sql
   */
-object DoseEra extends Spark with Era {
+class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.load()) extends Spark {
+
+  /**
+    * Override these from the trait extends
+    */
+  protected val sparkContext = sparkCont
+  protected val sqlContext = new SQLContext(sparkContext)
+  protected val config = conf
 
   type AncestorConceptId = Int
   type DescendantConceptId = Int
@@ -26,29 +35,27 @@ object DoseEra extends Spark with Era {
   type DrugExposureEndDate = DateTime
 
   // use these for none values
-  private val emptyConceptId = (-1, -1)
-  private val emptyDrugRecord = ((-1, -1, "", ""),  List[(DateTime, DateTime)]())
 
   /**
     * Build Dosage Eras
     */
-  def build = {
+  def build: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)] = {
     // the entire data
-    val bareData = createInitialData
+    val bareData = createInitialData()
 
     val result = bareData
       .reduceByKey(_ ++ _)
       .map {
         case ((personId, drugConceptId, unitConceptId, doseValue), dateList) =>
-          ((personId, drugConceptId, unitConceptId, doseValue), rangeBuilder(dateList))
+          ((personId, drugConceptId, unitConceptId, doseValue), Era.rangeBuilder(dateList))
       }
       .flatMap {
-      // find the count of net ranges
-      case (((personId, drugConceptId, unitConceptId, doseValue), finalCombine)) =>
-        finalCombine.map {
-          case ((firstDate, secondDate), count) =>
-            // differs slightly from project, no count
-            (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
+        // find the count of net ranges
+        case (((personId, drugConceptId, unitConceptId, doseValue), finalCombine)) =>
+          finalCombine.map {
+            case ((firstDate, secondDate), count) =>
+              // differs slightly from project, no count
+              (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
         }
       }
       // get rid of dups
@@ -73,11 +80,10 @@ object DoseEra extends Spark with Era {
     *
     * @return the rdd to build eras from
     */
-  private def createInitialData: RDD[
-      ((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])
-    ] = {
-    val descendantConceptMappings = remainingConceptIds
-    val drugExposure = loadDrugExposure
+  private val createInitialData = () => {
+    val emptyDrugRecord = ((-1, -1, "", ""),  List[(DateTime, DateTime)]())
+    val descendantConceptMappings = remainingConceptIds()
+    val drugExposure = loadDrugExposure()
     val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
 
     val result = drugExposure.map { row =>
@@ -115,17 +121,18 @@ object DoseEra extends Spark with Era {
     }.filter(_ != emptyDrugRecord).cache
 
     result
-  }
+  } : RDD[((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])]
 
   /**
     * Pre compute the ids we want from drug exposure or get them from a cache
     *
     * @return list of ids
     */
-  private def remainingConceptIds: List[(DescendantConceptId, AncestorConceptId)] = {
+  private val remainingConceptIds = () => {
     import better.files._
 
     val file = File(getCacheFile("conceptIds"))
+    val emptyConceptId = (-1, -1)
     var ids: List[(DescendantConceptId, AncestorConceptId)] = null
 
     // use the cache
@@ -135,8 +142,8 @@ object DoseEra extends Spark with Era {
       ids = sourceFile.collect.toList
       // close the files
     } else {
-      val conceptAncestor = loadConceptAncestor
-      val concept = loadConcept
+      val conceptAncestor = loadConceptAncestor()
+      val concept = loadConcept()
 
       // find the right values to go for
       val coMap: RDD[(Int, Int)] = concept.map { row =>
@@ -148,9 +155,9 @@ object DoseEra extends Spark with Era {
         if (conceptClass == "Ingredient" && vocabularyId == "RxNorm") {
           (conceptId, conceptId)
         } else {
-          (-1, -1)
+          emptyConceptId
         }
-      }.filter(_ != (-1, -1)).cache
+      }.filter(_ != emptyConceptId).cache
 
       // this should be small enough to broadcast
       val idsToRemain = sparkContext.broadcast(coMap.collect.toMap)
@@ -173,39 +180,39 @@ object DoseEra extends Spark with Era {
     }
 
     ids
-  }
+  } : List[(DescendantConceptId, AncestorConceptId)]
 
   /**
     * Fire up drug_exposure.csv
     *
-    * @return data frame of the drug exposure
+    * @return DataFrame of the drug exposure
     */
-  private def loadDrugExposure: DataFrame = {
+  private val loadDrugExposure = () => {
     csvDataReader
       .load(getDataFile("CDM_DRUG_EXPOSURE.csv"))
       .cache
-  }
+  } : DataFrame
 
   /**
     * Load up the concept_ancestor.csv
     *
-    * @return dataframe of concept ancestor
+    * @return DataFrame of concept ancestor
     */
-  private def loadConceptAncestor: DataFrame = {
+  private def loadConceptAncestor = () => {
     csvVocabReader
       .load(getVocabFile("CONCEPT_ANCESTOR.csv"))
       .cache
-  }
+  } : DataFrame
 
   /**
     * Load up the concept.csv
     *
-    * @return dataframe of concepts
+    * @return data frame of concepts
     */
-  private def loadConcept: DataFrame = {
+  private val loadConcept = () => {
     csvVocabReader
       .load(getVocabFile("CONCEPT.csv"))
       .cache
-  }
+  } : DataFrame
 
 }

@@ -4,16 +4,16 @@ import com.github.nscala_time.time.Imports._
 import org.joda.time.Interval
 
 /**
-  * All eras builders must implement this / will use this
+  * All eras builders must implement will use this as a helper serializable object
   */
-trait Era {
+object Era {
 
   /**
     * Build a range for a list of datetimes, 30 day interval, count included
     * @param startDateEndDateList the list of start and end date pairs
     * @return List[(DateTime, DateTime), Int] ranges, where int is amount within a range
     */
-  protected def rangeBuilder(startDateEndDateList: List[(DateTime, DateTime)], daysOverlap: Int = 30): List[((DateTime, DateTime), Int)] = {
+  def rangeBuilder(startDateEndDateList: List[(DateTime, DateTime)], daysOverlap: Int = 30): List[((DateTime, DateTime), Int)] = {
     var sortedStartEndDateList = startDateEndDateList.sortBy(_._1)
     // the one i'm currently looking at
     var currentRange = sortedStartEndDateList.head

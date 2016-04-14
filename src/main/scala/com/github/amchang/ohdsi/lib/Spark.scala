@@ -13,24 +13,24 @@ trait Spark {
     * Hold a reference to the spark context here,
     * make it configurable in the future
     */
-  protected val sparkConfig = new SparkConf()
+/*  protected val sparkConfig = new SparkConf()
     .setAppName("era")
-    .setMaster("local[8]")
+    .setMaster("local[8]")*/
 
   /**
     * General spark context
     */
-  protected val sparkContext = new SparkContext(sparkConfig)
+  protected val sparkContext: SparkContext
 
   /**
     * General sql context
     */
-  protected val sqlContext = new SQLContext(sparkContext)
+  protected val sqlContext: SQLContext
 
   /**
     * Get the config
     */
-  protected val config = ConfigFactory.load()
+  protected val config: Config
 
   /**
     * Generic csv reader to vocab or data reader
