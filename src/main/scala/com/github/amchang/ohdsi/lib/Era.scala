@@ -26,13 +26,18 @@ object Era {
   type GapDaysStockpile = Int
 
   /**
-    * Build a range for a list of datetimes, 30 day interval, count included
+    * Build a range for a list of date times (day specific, should all be midnight starts), 30 day interval, count included
     *
     * @param startDateEndDateList the list of start and end date pairs
     * @return List[(DateTime, DateTime), Int] ranges, where int is amount within a range
     */
   def rangeBuilder(startDateEndDateList: List[(DateTime, DateTime)], daysOverlap: Int = 30):
       List[((StartDateRange, EndDateRange), RangeCount, GapDaysNoStockpile, GapDaysStockpile)] = {
+    // check for bad inputs
+    if (startDateEndDateList.isEmpty || daysOverlap < 0) {
+      return List()
+    }
+
     var sortedStartEndDateList = startDateEndDateList.sortBy(_._1)
     // the one i'm currently looking at
     var currentRange = sortedStartEndDateList.head
@@ -80,6 +85,7 @@ object Era {
 
   /**
     * Get the gap days for two intervals
+    *
     * @param startRange the starting range
     * @param endRange the ending range
     * @param stockpile do we add stockpile in the interval yes or no, default is no
@@ -97,9 +103,14 @@ object Era {
 
     // if the overlap >= 0, - gap days
     if (gapInterval == null) {
-      // of we stockpile, it's like - gap days
+      // of we stockpile, it's like - gap days, not exactly on each other also
       if (stockpile) {
-        - startInterval.overlap(endInterval).toDuration.getStandardDays.toInt
+        // if they start exactly on the same day it's like a 1 day overlap
+        if(!startInterval.abuts(endInterval)) {
+          -startInterval.overlap(endInterval).toDuration.getStandardDays.toInt
+        } else {
+          -1
+        }
       } else {
         0
       }

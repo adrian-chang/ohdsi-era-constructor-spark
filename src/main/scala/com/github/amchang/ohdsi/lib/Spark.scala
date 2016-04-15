@@ -10,14 +10,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 trait Spark {
 
   /**
-    * Hold a reference to the spark context here,
-    * make it configurable in the future
-    */
-/*  protected val sparkConfig = new SparkConf()
-    .setAppName("era")
-    .setMaster("local[8]")*/
-
-  /**
     * General spark context
     */
   protected val sparkContext: SparkContext
