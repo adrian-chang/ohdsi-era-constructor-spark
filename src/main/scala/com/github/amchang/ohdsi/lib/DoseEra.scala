@@ -14,7 +14,7 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
   *
   * https://github.com/OHDSI/Era-Constructor/blob/master/v5/PostgreSQL/postgres_v5_dose_era.sql
   */
-class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.load()) extends DrugStockpile {
+class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.load()) extends DrugExposure {
 
   /**
     * Override these from the trait extends

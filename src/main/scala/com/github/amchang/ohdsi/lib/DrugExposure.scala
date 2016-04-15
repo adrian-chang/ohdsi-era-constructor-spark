@@ -8,7 +8,7 @@ import org.apache.spark.sql.DataFrame
 /**
   * This is a shared base class for anyone that attempts to use the drug_condition table
   */
-abstract class DrugStockpile extends Spark {
+abstract class DrugExposure extends Spark {
 
   type AncestorConceptId = Int
   type DescendantConceptId = Int
