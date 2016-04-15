@@ -30,6 +30,9 @@ object Main {
 
    // new ConditionEra().build
     new DoseEra().build
+
+    // stop the spark context
+    sparkContext.stop()
   }
 
 }
