@@ -29,28 +29,6 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   type Count = Int
 
   /**
-    * Map each data type into the final format with the correct key
-    */
-  private val mapToPersonIdConceptId = (row: Row) => {
-    // all of the same fields
-    val personId = row.getString(1).toInt
-    val formatter = DateTimeFormat.forPattern("yyyyMMdd")
-    val conditionConceptId = row.getString(2).toInt
-    val conditionStartDate = formatter.parseDateTime(row.getString(3))
-    var conditionEndDate: DateTime = null
-
-    // if it's null, day + 1
-    if (row.getString(4).isEmpty) {
-      // add an extra date
-      conditionEndDate = conditionStartDate.plusDays(1)
-    } else {
-      conditionEndDate = formatter.parseDateTime(row.getString(4))
-    }
-
-    ((personId, conditionConceptId), List((conditionStartDate, conditionEndDate)))
-  }
-
-  /**
     * Build an entire era for drugs
     *
     * @return RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)], similar to the results from
@@ -91,5 +69,28 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
       }
       .cache
   }
+
+  /**
+    * Map each data type into the final format with the correct key
+    */
+  private val mapToPersonIdConceptId = (row: Row) => {
+    // all of the same fields
+    val personId = row.getString(1).toInt
+    val formatter = DateTimeFormat.forPattern("yyyyMMdd")
+    val conditionConceptId = row.getString(2).toInt
+    val conditionStartDate = formatter.parseDateTime(row.getString(3))
+    var conditionEndDate: DateTime = null
+
+    // if it's null, day + 1
+    if (row.getString(4).isEmpty) {
+      // add an extra date
+      conditionEndDate = conditionStartDate.plusDays(1)
+    } else {
+      conditionEndDate = formatter.parseDateTime(row.getString(4))
+    }
+
+    ((personId, conditionConceptId), List((conditionStartDate, conditionEndDate)))
+  }
+
 
 }

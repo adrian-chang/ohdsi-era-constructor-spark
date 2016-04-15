@@ -28,7 +28,7 @@ object Main {
       .setMaster("local[8]")
     implicit val sparkContext = new SparkContext(sparkConfig)
 
-    new ConditionEra().build
+   // new ConditionEra().build
     new DoseEra().build
   }
 
