@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   // test
   "org.scalactic" %% "scalactic" % "2.2.6",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  "org.mockito" % "mockito-all" % "2.0.2-beta" % "test",
   // json
   "io.spray" %% "spray-json" % "1.3.2",
   // csv
