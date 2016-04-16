@@ -46,10 +46,10 @@ class EraSpec extends FunSpec {
       }
 
       it("returns two separate date ranges for two date ranges that don\'t overlap with overlap of 30 days") {
-        val firstDateStart = DateTime.now
-        val firstDateEnd = DateTime.now
-        val secondDateStart = DateTime.now.plusDays(100)
-        val secondDateEnd = DateTime.now.plusDays(100)
+        val firstDateStart = DateTime.now.withTimeAtStartOfDay
+        val firstDateEnd = DateTime.now.withTimeAtStartOfDay
+        val secondDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(100)
+        val secondDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(100)
         val metaList = Era.rangeBuilder(List((firstDateStart, firstDateEnd), (secondDateStart, secondDateEnd)))
         val ((firstStartDateRange, firstEndDateRange),
           firstRangeCount, firstGapDaysNoStockpile, firstGapDaysStockpile) = metaList.head
@@ -111,13 +111,53 @@ class EraSpec extends FunSpec {
         assert(firstGapDaysStockpile == -1)
       }
 
-      it("returns three separate date ranges for three date ranges that don\t overlap") {
-        val firstDateStart = DateTime.now
-        val firstDateEnd = DateTime.now
-        val secondDateStart = DateTime.now.plusDays(40)
-        val secondDateEnd = DateTime.now.plusDays(40)
-        val thirdDateStart = DateTime.now.plusDays(80)
-        val thirdDateEnd = DateTime.now.plusDays(80)
+      it("returns three separate date ranges for three date ranges that don\'t overlap") {
+        val firstDateStart = DateTime.now.withTimeAtStartOfDay
+        val firstDateEnd = DateTime.now.withTimeAtStartOfDay
+        val secondDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(40)
+        val secondDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(40)
+        val thirdDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(80)
+        val thirdDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(80)
+
+        val metaList = Era.rangeBuilder(
+          List((firstDateStart, firstDateEnd), (secondDateStart, secondDateEnd), (thirdDateStart, thirdDateEnd))
+        )
+        val ((firstStartDateRange, firstEndDateRange),
+          firstRangeCount, firstGapDaysNoStockpile, firstGapDaysStockpile) = metaList.head
+        val ((secondStartDateRange, secondEndDateRange),
+          secondRangeCount, secondGapDaysNoStockpile, secondGapDaysStockpile) = metaList(1)
+        val ((thirdStartDateRange, thirdEndDateRange),
+          thirdRangeCount, thirdGapDaysNoStockpile, thirdGapDaysStockpile) = metaList.last
+
+        assert(metaList.length == 3)
+
+        assert(firstStartDateRange.withTimeAtStartOfDay.equals(firstDateStart.withTimeAtStartOfDay))
+        assert(firstEndDateRange.withTimeAtStartOfDay.equals(firstDateEnd.withTimeAtStartOfDay))
+        assert(firstRangeCount == 1)
+        assert(firstGapDaysNoStockpile == 0)
+        assert(firstGapDaysStockpile == 0)
+
+        assert(secondStartDateRange.withTimeAtStartOfDay.equals(secondDateStart.withTimeAtStartOfDay))
+        assert(secondEndDateRange.withTimeAtStartOfDay.equals(secondDateEnd.withTimeAtStartOfDay))
+        assert(secondRangeCount == 1)
+        assert(secondGapDaysNoStockpile == 0)
+        assert(secondGapDaysStockpile == 0)
+
+        assert(thirdStartDateRange.withTimeAtStartOfDay.equals(thirdDateStart.withTimeAtStartOfDay))
+        assert(thirdEndDateRange.withTimeAtStartOfDay.equals(thirdDateEnd.withTimeAtStartOfDay))
+        assert(thirdRangeCount == 1)
+        assert(thirdGapDaysNoStockpile == 0)
+        assert(thirdGapDaysStockpile == 0)
+      }
+
+
+      it("returns two separate date ranges for two date ranges that overlap and one that doesn\'t") {
+        val firstDateStart = DateTime.now.withTimeAtStartOfDay
+        val firstDateEnd = DateTime.now.withTimeAtStartOfDay
+        val secondDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(40)
+        val secondDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(45)
+        val thirdDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(40)
+        val thirdDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(80)
 
         val metaList = Era.rangeBuilder(
           List((firstDateStart, firstDateEnd), (secondDateStart, secondDateEnd), (thirdDateStart, thirdDateEnd))
@@ -127,23 +167,42 @@ class EraSpec extends FunSpec {
         val ((secondStartDateRange, secondEndDateRange),
           secondRangeCount, secondGapDaysNoStockpile, secondGapDaysStockpile) = metaList.last
 
-        assert(metaList.length == 3)
+        assert(metaList.length == 2)
 
-        assert(firstStartDateRange.withTimeAtStartOfDay().equals(firstDateStart.withTimeAtStartOfDay()))
-        assert(firstEndDateRange.withTimeAtStartOfDay().equals(firstDateEnd.withTimeAtStartOfDay()))
+        assert(firstStartDateRange.withTimeAtStartOfDay.equals(firstDateStart.withTimeAtStartOfDay))
+        assert(firstEndDateRange.withTimeAtStartOfDay.equals(firstDateEnd.withTimeAtStartOfDay))
         assert(firstRangeCount == 1)
         assert(firstGapDaysNoStockpile == 0)
         assert(firstGapDaysStockpile == 0)
 
-        assert(secondStartDateRange.withTimeAtStartOfDay().equals(secondDateStart.withTimeAtStartOfDay()))
-        assert(secondEndDateRange.withTimeAtStartOfDay().equals(secondDateEnd.withTimeAtStartOfDay()))
-        assert(secondRangeCount == 1)
+        assert(secondStartDateRange.withTimeAtStartOfDay.equals(secondDateStart.withTimeAtStartOfDay))
+        assert(secondEndDateRange.withTimeAtStartOfDay.equals(thirdDateEnd.withTimeAtStartOfDay))
+        assert(secondRangeCount == 2)
         assert(secondGapDaysNoStockpile == 0)
-        assert(secondGapDaysStockpile == 0)
+        assert(secondGapDaysStockpile == -5)
       }
 
-      it("returns two date ranges for two ranges that overlap and one that doesn\'t") {
+      it("returns one date range for two ranges that overlap and one that does only logically") {
+        val firstDateStart = DateTime.now.withTimeAtStartOfDay
+        val firstDateEnd = DateTime.now.withTimeAtStartOfDay
+        val secondDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(20)
+        val secondDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(25)
+        val thirdDateStart = DateTime.now.withTimeAtStartOfDay.plusDays(20)
+        val thirdDateEnd = DateTime.now.withTimeAtStartOfDay.plusDays(50)
 
+        val metaList = Era.rangeBuilder(
+          List((firstDateStart, firstDateEnd), (secondDateStart, secondDateEnd), (thirdDateStart, thirdDateEnd))
+        )
+        val ((firstStartDateRange, firstEndDateRange),
+          firstRangeCount, firstGapDaysNoStockpile, firstGapDaysStockpile) = metaList.head
+
+        assert(metaList.length == 1)
+
+        assert(firstStartDateRange.withTimeAtStartOfDay.equals(firstDateStart.withTimeAtStartOfDay))
+        assert(firstEndDateRange.withTimeAtStartOfDay.equals(thirdDateEnd.withTimeAtStartOfDay))
+        assert(firstRangeCount == 3)
+        assert(firstGapDaysNoStockpile == 20)
+        assert(firstGapDaysStockpile == 15)
       }
 
     }
