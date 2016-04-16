@@ -12,17 +12,17 @@ trait Spark {
   /**
     * General spark context
     */
-  protected val sparkContext: SparkContext
+  val sparkContext: SparkContext
 
   /**
     * General sql context
     */
-  protected val sqlContext: SQLContext
+  val sqlContext: SQLContext
 
   /**
     * Get the config
     */
-  protected val config: Config
+  val config: Config
 
   /**
     * Generic csv reader to vocab or data reader

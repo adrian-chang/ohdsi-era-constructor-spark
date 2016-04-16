@@ -57,16 +57,15 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
     }
 
     it("has a spark context available") {
-
+      assert(sparkCreation.sparkContext == sparkCont)
     }
 
     it("has a SQLContext available") {
-
+      assert(sparkCreation.sqlContext == sqlCont)
     }
 
     it("has a config available") {
-      val privateMethod = PrivateMethod[Config]('config)
-
+      assert(sparkCreation.config == conf)
     }
 
     describe("csvVocabReader") {
