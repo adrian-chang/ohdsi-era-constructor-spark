@@ -81,4 +81,10 @@ trait Spark {
     config.getString("ohdsi.cache") + s"/cache/${file}"
   }
 
+  /**
+    * Write the result of the most recent build,
+    * default, it will write nothing
+    */
+  def writeCSV(): Unit = {}
+
 }

@@ -124,6 +124,12 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
       }
     }
 
+    describe("writeCSV") {
+      it("does nothing") {
+        assert(sparkCreation.writeCSV() == ())
+      }
+    }
+
   }
 
 }
