@@ -1,6 +1,5 @@
 package com.github.amchang.ohdsi.lib
 
-import better.files.File
 import com.github.nscala_time.time.Imports._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame

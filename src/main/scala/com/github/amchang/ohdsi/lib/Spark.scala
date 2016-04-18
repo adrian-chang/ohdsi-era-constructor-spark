@@ -12,17 +12,17 @@ trait Spark {
   /**
     * General spark context
     */
-  val sparkContext: SparkContext
+  protected val sparkContext: SparkContext
 
   /**
     * General sql context
     */
-  val sqlContext: SQLContext
+  protected val sqlContext: SQLContext
 
   /**
     * Get the config
     */
-  val config: Config
+  protected val config: Config
 
   /**
     * Generic csv reader to vocab or data reader
@@ -43,7 +43,7 @@ trait Spark {
     */
   protected def csvVocabReader: DataFrameReader = {
     csvReader
-      .option("delimiter", "\t")
+      .option("delimiter", config.getString("ohdsi.vocab.delimiter"))
   }
 
   /**
@@ -60,7 +60,7 @@ trait Spark {
     * @return full path to a vocab file
     */
   protected def getVocabFile(file: String): String = {
-    config.getString("ohdsi.vocab") + file
+    config.getString("ohdsi.vocab.location") + file
   }
 
   /**
@@ -69,7 +69,7 @@ trait Spark {
     * @return full path to a vocab file
     */
   protected def getDataFile(file: String): String = {
-    config.getString("ohdsi.data") + file
+    config.getString("ohdsi.data.location") + file
   }
 
   /**
@@ -78,7 +78,7 @@ trait Spark {
     * @return the string location
     */
   protected def getCacheFile(file: String): String = {
-    config.getString("ohdsi.cache") + s"/cache/${file}"
+    config.getString("ohdsi.cache.location") + s"/cache/${file}"
   }
 
   /**

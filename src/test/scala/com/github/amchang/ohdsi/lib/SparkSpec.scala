@@ -56,21 +56,11 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
       dataFrameReader
     }
 
-    it("has a spark context available") {
-      assert(sparkCreation.sparkContext == sparkCont)
-    }
-
-    it("has a SQLContext available") {
-      assert(sparkCreation.sqlContext == sqlCont)
-    }
-
-    it("has a config available") {
-      assert(sparkCreation.config == conf)
-    }
-
     describe("csvVocabReader") {
       it("returns a generic data reader with custom delimiter") {
         val privateMethod = PrivateMethod[DataFrameReader]('csvVocabReader)
+
+        when(conf.getString("ohdsi.vocab.delimiter")).thenReturn("\t")
 
         verify(verifyCsv(privateMethod)).option("delimiter", "\t")
       }
@@ -90,7 +80,7 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
         val cacheLocation = "/usr/"
         val file = "abc.csv"
 
-        when(conf.getString("ohdsi.vocab")).thenReturn(cacheLocation)
+        when(conf.getString("ohdsi.vocab.location")).thenReturn(cacheLocation)
 
         val result = sparkCreation.invokePrivate(privateMethod(file))
 
@@ -103,7 +93,7 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
         val privateMethod = PrivateMethod[String]('getDataFile)
         val cacheLocation = "/user/"
         val file = "abc.csv"
-        when(conf.getString("ohdsi.data")).thenReturn(cacheLocation)
+        when(conf.getString("ohdsi.data.location")).thenReturn(cacheLocation)
 
         val result = sparkCreation.invokePrivate(privateMethod(file))
 
@@ -116,7 +106,7 @@ class SparkSpec extends FunSpec with BeforeAndAfter with PrivateMethodTester wit
         val privateMethod = PrivateMethod[String]('getCacheFile)
         val cacheLocation = "/home"
         val file = "abc"
-        when(conf.getString("ohdsi.cache")).thenReturn(cacheLocation)
+        when(conf.getString("ohdsi.cache.location")).thenReturn(cacheLocation)
 
         val result = sparkCreation.invokePrivate(privateMethod(file))
 
