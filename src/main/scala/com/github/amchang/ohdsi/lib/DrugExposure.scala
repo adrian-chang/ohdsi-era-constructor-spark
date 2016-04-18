@@ -67,8 +67,7 @@ abstract class DrugExposure extends Spark {
             val unitConceptId = row.getString(13)
             val doseValue = row.getString(12)
 
-            ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue),
-              List((drugExposureStartDate, drugExposureEndDate)))
+            ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue), List((drugExposureStartDate, drugExposureEndDate)))
           } else {
             emptyDrugRecord
           }
@@ -131,6 +130,8 @@ abstract class DrugExposure extends Spark {
           }
         }.filter(_ != emptyConceptId).cache
 
+        // delete just in case
+        file.delete(true)
         caMap.saveAsObjectFile(file.path.toString)
 
         ids = caMap.collect.toList
