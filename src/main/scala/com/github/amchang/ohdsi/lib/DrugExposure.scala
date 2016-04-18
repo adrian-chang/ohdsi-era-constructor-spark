@@ -26,46 +26,57 @@ abstract class DrugExposure extends Spark {
     * @return the rdd to build eras from
     */
   protected val createInitialData = () => {
-    val emptyDrugRecord = ((-1, -1, "", ""),  List[(DateTime, DateTime)]())
-    val descendantConceptMappings = remainingConceptIds()
     val drugExposure = loadDrugExposure()
-    val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
 
-    val result = drugExposure.map { row =>
-      val drugConceptId = row.getString(2).toInt
-      val remainderMap = remainder.value
-
-      // key safety
-      if (remainderMap.contains(drugConceptId)) {
-        val formatter = DateTimeFormat.forPattern("yyyyMMdd")
-        val personId = row.getString(1).toInt
-        val drugExposureStartDate = formatter.parseDateTime(row.getString(3))
-
-        // deal with the end date, if no end date
-        val daysSupply = row.getString(9)
-
-        val drugExposureEndDate = if (row.getString(4).isEmpty) {
-          if (daysSupply.isEmpty) {
-            drugExposureStartDate.plusDays(1)
-          } else {
-            drugExposureStartDate.plusDays(daysSupply.toInt)
-          }
-        } else {
-          formatter.parseDateTime(row.getString(4))
-        }
-
-        // following two can be blank, and there's no sql code substitution
-        val unitConceptId = row.getString(13)
-        val doseValue = row.getString(12)
-
-        ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue),
-          List((drugExposureStartDate, drugExposureEndDate)))
+    if (drugExposure.count == 0) {
+      sparkContext.emptyRDD
+    } else {
+      val descendantConceptMappings = remainingConceptIds()
+      // no mappings
+      if (descendantConceptMappings.isEmpty) {
+        sparkContext.emptyRDD
       } else {
-        emptyDrugRecord
-      }
-    }.filter(_ != emptyDrugRecord).cache
+        val emptyDrugRecord = ((-1, -1, "", ""), List[(DateTime, DateTime)]())
+        val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
+        val dateFormat = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
 
-    result
+        val result = drugExposure.map { row =>
+          val drugConceptId = row.getString(2).toInt
+          val remainderMap = remainder.value
+
+          // key safety
+          if (remainderMap.contains(drugConceptId)) {
+            val formatter = DateTimeFormat.forPattern(dateFormat.value)
+            val personId = row.getString(1).toInt
+            val drugExposureStartDate = formatter.parseDateTime(row.getString(3))
+
+            // deal with the end date, if no end date
+            val daysSupply = row.getString(9)
+
+            val drugExposureEndDate = if (row.getString(4).isEmpty) {
+              if (daysSupply.isEmpty) {
+                drugExposureStartDate.plusDays(1)
+              } else {
+                drugExposureStartDate.plusDays(daysSupply.toInt)
+              }
+            } else {
+              formatter.parseDateTime(row.getString(4))
+            }
+
+            // following two can be blank, and there's no sql code substitution
+            val unitConceptId = row.getString(13)
+            val doseValue = row.getString(12)
+
+            ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue),
+              List((drugExposureStartDate, drugExposureEndDate)))
+          } else {
+            emptyDrugRecord
+          }
+        }.filter(_ != emptyDrugRecord).cache
+
+        result
+      }
+    }
   } : RDD[((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])]
 
   /**
@@ -78,7 +89,7 @@ abstract class DrugExposure extends Spark {
 
     val file = File(getCacheFile("conceptIds"))
     val emptyConceptId = (-1, -1)
-    var ids: List[(DescendantConceptId, AncestorConceptId)] = null
+    var ids: List[(DescendantConceptId, AncestorConceptId)] = List()
 
     // use the cache
     if (file.exists && config.getBoolean("ohdsi.cache.enabled")) {
@@ -90,38 +101,40 @@ abstract class DrugExposure extends Spark {
       val conceptAncestor = loadConceptAncestor()
       val concept = loadConcept()
 
-      // find the right values to go for
-      val coMap: RDD[(Int, Int)] = concept.map { row =>
-        val conceptId = row.getString(0).toInt
-        val conceptClass = row.getString(4)
-        val vocabularyId = row.getString(3)
+      if (concept.count > 0 && conceptAncestor.count > 0) {
+        // find the right values to go for
+        val coMap: RDD[(Int, Int)] = concept.map { row =>
+          val conceptId = row.getString(0).toInt
+          val conceptClass = row.getString(4)
+          val vocabularyId = row.getString(3)
 
-        // id can be an int or alphanumeric, this is a bug in the main one, it uses '8' instead of RxNorm
-        if (conceptClass == "Ingredient" && vocabularyId == "RxNorm") {
-          (conceptId, conceptId)
-        } else {
-          emptyConceptId
-        }
-      }.filter(_ != emptyConceptId).cache
+          // id can be an int or alphanumeric, this is a bug in the main one, it uses '8' instead of RxNorm
+          if (conceptClass == "Ingredient" && vocabularyId == "RxNorm") {
+            (conceptId, conceptId)
+          } else {
+            emptyConceptId
+          }
+        }.filter(_ != emptyConceptId).cache
 
-      // this should be small enough to broadcast
-      val idsToRemain = sparkContext.broadcast(coMap.collect.toMap)
+        // this should be small enough to broadcast
+        val idsToRemain = sparkContext.broadcast(coMap.collect.toMap)
 
-      // map the join table
-      val caMap = conceptAncestor.map { row =>
-        val ancestorConceptId = row.getString(0).toInt
-        val descendantConceptId: Int = row.getString(1).toInt
+        // map the join table
+        val caMap = conceptAncestor.map { row =>
+          val ancestorConceptId = row.getString(0).toInt
+          val descendantConceptId = row.getString(1).toInt
 
-        if (idsToRemain.value.contains(ancestorConceptId)) {
-          (descendantConceptId, ancestorConceptId)
-        } else {
-          emptyConceptId
-        }
-      }.filter(_ != emptyConceptId).cache
+          if (idsToRemain.value.contains(ancestorConceptId)) {
+            (descendantConceptId, ancestorConceptId)
+          } else {
+            emptyConceptId
+          }
+        }.filter(_ != emptyConceptId).cache
 
-      caMap.saveAsObjectFile(file.path.toString)
+        caMap.saveAsObjectFile(file.path.toString)
 
-      ids = caMap.collect.toList
+        ids = caMap.collect.toList
+      }
     }
 
     ids

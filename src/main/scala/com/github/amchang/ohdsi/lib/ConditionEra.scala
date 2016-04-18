@@ -89,7 +89,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
       conditionEndDate = formatter.parseDateTime(row.getString(4))
     }
 
-    ((personId, conditionConceptId), List((conditionStartDate, conditionEndDate)))
+    ((personId, conditionConceptId), List((conditionStartDate.withTimeAtStartOfDay, conditionEndDate.withTimeAtStartOfDay)))
   }
 
 
