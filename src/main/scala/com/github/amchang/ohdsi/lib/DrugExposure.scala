@@ -81,7 +81,7 @@ abstract class DrugExposure extends Spark {
     var ids: List[(DescendantConceptId, AncestorConceptId)] = null
 
     // use the cache
-    if (file.exists) {
+    if (file.exists && config.getBoolean("ohdsi.cache.enabled")) {
       val sourceFile = sparkContext.objectFile[(DescendantConceptId, AncestorConceptId)](file.path.toString)
 
       ids = sourceFile.collect.toList
@@ -133,8 +133,10 @@ abstract class DrugExposure extends Spark {
     * @return DataFrame of the drug exposure
     */
   private val loadDrugExposure = () => {
+    val file = config.getString("ohdsi.data.drugExposure")
+
     csvDataReader
-      .load(getDataFile("CDM_DRUG_EXPOSURE.csv"))
+      .load(getDataFile(file))
       .cache
   } : DataFrame
 
@@ -144,8 +146,10 @@ abstract class DrugExposure extends Spark {
     * @return DataFrame of concept ancestor
     */
   private val loadConceptAncestor = () => {
+    val file = config.getString("ohdsi.vocab.conceptAncestor")
+
     csvVocabReader
-      .load(getVocabFile("CONCEPT_ANCESTOR.csv"))
+      .load(getVocabFile(file))
       .cache
   } : DataFrame
 
@@ -155,8 +159,10 @@ abstract class DrugExposure extends Spark {
     * @return data frame of concepts
     */
   private val loadConcept = () => {
+    val file = config.getString("ohdsi.vocab.concept")
+
     csvVocabReader
-      .load(getVocabFile("CONCEPT.csv"))
+      .load(getVocabFile(file))
       .cache
   } : DataFrame
 
