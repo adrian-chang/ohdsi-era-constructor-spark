@@ -42,18 +42,17 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
     }
 
     conditionOccurrence
-      .map(mapToPersonIdConceptId)
+      .map(mapToPersonIdConceptId(config.getString("ohdsi.dateFormat")))
       .reduceByKey(_ ++ _)
       .map {
         case ((personId, conditionConceptId), startDateEndDateList) =>
-          //((personId, conditionConceptId), 1)
           ((personId, conditionConceptId), Era.rangeBuilder(startDateEndDateList, 30))
       }
       .flatMap {
         // find the count of net ranges
         case ((personId, conditionConceptId), finalCombine) =>
           finalCombine.map {
-            case ((firstDate, secondDate), count) =>
+            case ((firstDate, secondDate), count, noStockpile, stockpile) =>
               ((personId, conditionConceptId, firstDate, secondDate), count)
           }
       }
@@ -75,10 +74,10 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   /**
     * Map each data type into the final format with the correct key
     */
-  private val mapToPersonIdConceptId = (row: Row) => {
+  private val mapToPersonIdConceptId = (dateFormat: String) => (row: Row) => {
     // all of the same fields
     val personId = row.getString(1).toInt
-    val formatter = DateTimeFormat.forPattern("yyyyMMdd")
+    val formatter = DateTimeFormat.forPattern(dateFormat)
     val conditionConceptId = row.getString(2).toInt
     val conditionStartDate = formatter.parseDateTime(row.getString(3))
     var conditionEndDate: DateTime = null

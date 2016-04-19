@@ -9,10 +9,10 @@ import org.apache.spark.{SparkConf, SparkContext}
 object Main {
 
   def time[R](block: => R): R = {
-    val t0 = System.nanoTime()
+    val t0 = System.currentTimeMillis()
     val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    val r = (t1 - t0) / (10 * 10^9)
+    val t1 = System.currentTimeMillis()
+    val r = (t1 - t0) / 1000
     println("Elapsed time: " + r + "s")
     result
   }
