@@ -9,7 +9,6 @@ import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, _}
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
@@ -18,7 +17,7 @@ import org.mockito.Mockito._
 /**
   * Test out DrugExposure
   */
-class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar with PrivateMethodTester with BeforeAndAfterAll {
+class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // entire base data
   val sparkConf: SparkConf = new SparkConf()
@@ -71,6 +70,10 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
   when(conf.getString("ohdsi.cache.location")).thenReturn("/tmp")
   when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
 
+  var exposureData: List[Row] = List()
+  var conceptAncestorData: List[Row] = List()
+  var conceptData: List[Row] = List()
+
   before {
     drugExposure = new DrugExposure {
       val config: Config = conf
@@ -95,6 +98,23 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
     loadConcept = allFields(4)
     loadConcept.setAccessible(true)
 
+    loadDrugExposure.set(drugExposure, () => {
+      val numList: RDD[Row] = sparkCont.parallelize(exposureData)
+
+      sqlCont.createDataFrame(numList, drugExposureSchema)
+    }: DataFrame)
+
+    loadConceptAncestor.set(drugExposure, () => {
+      val numList: RDD[Row] = sparkCont.parallelize(conceptAncestorData)
+
+      sqlCont.createDataFrame(numList, conceptAncestorSchema)
+    }: DataFrame)
+
+    loadConcept.set(drugExposure, () => {
+      val numList: RDD[Row] = sparkCont.parallelize(conceptData)
+
+      sqlCont.createDataFrame(numList, conceptSchema)
+    }: DataFrame)
   }
 
   override protected def afterAll() = {
@@ -104,164 +124,82 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
   describe("DrugExposure") {
 
     describe("createInitialData") {
+
+
       it("returns an empty rdd since drug exposure is empty") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List())
-          val struct = StructType(List())
-
-          sqlCont.createDataFrame(numList, struct)
-        }: DataFrame)
-
         assert(createInitialData().count == 0)
       }
 
       it("returns an empty rdd since no concept or concept ancestor ids could be found") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-             Row("1", "10", "20", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-             Row("2", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
-
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
-
-        loadConceptAncestor.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List())
-
-          sqlCont.createDataFrame(numList, conceptAncestorSchema)
-        }: DataFrame)
-
-        loadConcept.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List())
-
-          sqlCont.createDataFrame(numList, conceptSchema)
-        }: DataFrame)
+        exposureData = List(
+          Row("1", "10", "20", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
+          Row("2", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
+        )
 
         assert(createInitialData().count == 0)
       }
 
       it("returns an empty rdd since no concept ancestor ids count be found") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("1", "10", "20", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-            Row("2", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
-
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
-
-        loadConceptAncestor.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List())
-
-          sqlCont.createDataFrame(numList, conceptAncestorSchema)
-        }: DataFrame)
-
-        loadConcept.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("89", "", "", "RxNorm", "Ingredient"),
-            Row("103", "", "", "RxNorm", "Ingredient"),
-            Row("120", "", "", "RxNorm", "Ingredient"),
-            Row("23", "", "", "Diag", "Screening")
-          ))
-
-          sqlCont.createDataFrame(numList, conceptSchema)
-        }: DataFrame)
+        conceptData = List(
+          Row("89", "", "", "RxNorm", "Ingredient"),
+          Row("103", "", "", "RxNorm", "Ingredient"),
+          Row("120", "", "", "RxNorm", "Ingredient"),
+          Row("23", "", "", "Diag", "Screening")
+        )
 
         assert(createInitialData().count == 0)
       }
 
       it("returns an empty rdd since no concept ids could be found") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("1", "10", "20", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-            Row("2", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
-
-        loadConceptAncestor.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("103", "9012"),
-            Row("120", "890")
-          ))
-
-          sqlCont.createDataFrame(numList, conceptAncestorSchema)
-        }: DataFrame)
-
-        loadConcept.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List())
-
-          sqlCont.createDataFrame(numList, conceptSchema)
-        }: DataFrame)
+        conceptData = List()
+        conceptAncestorData = List(
+          Row("103", "9012"),
+          Row("120", "890")
+        )
 
         assert(createInitialData().count == 0)
       }
 
       it("returns an empty rdd since no descendant concept ids are used in drug exposure records") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("1", "10", "6", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-            Row("2", "11", "5", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
-            Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
+        exposureData = List(
+          Row("1", "10", "6", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
+          Row("2", "11", "5", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
+          Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
+        )
 
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
+        conceptAncestorData = List(
+          Row("103", "9012"),
+          Row("120", "890")
+        )
 
-        loadConceptAncestor.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("103", "9012"),
-            Row("120", "890")
-          ))
-
-          sqlCont.createDataFrame(numList, conceptAncestorSchema)
-        }: DataFrame)
-
-
-        loadConcept.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("89", "", "", "RxNorm", "Ingredient"),
-            Row("103", "", "", "RxNorm", "Ingredient"),
-            Row("120", "", "", "RxNorm", "Ingredient"),
-            Row("23", "", "", "Diag", "Screening")
-          ))
-
-          sqlCont.createDataFrame(numList, conceptSchema)
-        }: DataFrame)
+        conceptData = List(
+          Row("89", "", "", "RxNorm", "Ingredient"),
+          Row("103", "", "", "RxNorm", "Ingredient"),
+          Row("120", "", "", "RxNorm", "Ingredient"),
+          Row("23", "", "", "Diag", "Screening")
+        )
 
         assert(createInitialData().count == 0)
       }
 
       it("returns an rdd mapping since concept ids / ancestor ids / drug exposure records all line up") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("1", "10", "9012", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-            Row("2", "11", "890", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
-            Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
+        exposureData = List(
+          Row("1", "10", "9012", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
+          Row("2", "11", "890", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
+          Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
+        )
 
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
+        conceptAncestorData = List(
+          Row("103", "9012"),
+          Row("120", "890")
+        )
 
-        loadConceptAncestor.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("103", "9012"),
-            Row("120", "890")
-          ))
-
-          sqlCont.createDataFrame(numList, conceptAncestorSchema)
-        }: DataFrame)
-
-
-        loadConcept.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("89", "", "", "RxNorm", "Ingredient"),
-            Row("103", "", "", "RxNorm", "Ingredient"),
-            Row("120", "", "", "RxNorm", "Ingredient"),
-            Row("23", "", "", "Diag", "Screening")
-          ))
-          sqlCont.createDataFrame(numList, conceptSchema)
-        }: DataFrame)
+        conceptData = List(
+          Row("89", "", "", "RxNorm", "Ingredient"),
+          Row("103", "", "", "RxNorm", "Ingredient"),
+          Row("120", "", "", "RxNorm", "Ingredient"),
+          Row("23", "", "", "Diag", "Screening")
+        )
 
         val result = createInitialData().collect
         val firstRecord = result(0)
@@ -273,15 +211,14 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
       }
 
       it("returns the same version as its cached now") {
-        loadDrugExposure.set(drugExposure, () => {
-          val numList: RDD[Row] = sparkCont.parallelize(List(
-            Row("1", "10", "9012", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
-            Row("2", "11", "890", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
-            Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
-          ))
+        exposureData = List(
+          Row("1", "10", "9012", "20200419", "20200421", "", "", "", "", "", "", "", "100", "30"),
+          Row("2", "11", "890", "20200413", "", "", "", "", "", "20", "", "", "200", "30"),
+          Row("3", "11", "21", "20200413", "", "", "", "", "", "20", "", "", "200", "30")
+        )
 
-          sqlCont.createDataFrame(numList, drugExposureSchema)
-        }: DataFrame)
+        conceptAncestorData = List()
+        conceptData = List()
 
         when(conf.getBoolean("ohdsi.cache.enabled")).thenReturn(true)
 

@@ -4,7 +4,7 @@ import org.apache.spark.rdd.RDD
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
 /**
   * Replicate the functionality within
@@ -35,9 +35,11 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
     *         the comparable sql query
     */
   def build: RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)] = {
-    val conditionOccurrence =
-      csvDataReader.load(getDataFile("CDM_CONDITION_OCCURRENCE.csv"))
-        .cache
+    val conditionOccurrence = loadConditionOccurrence
+
+    if (conditionOccurrence.count == 0) {
+      return sparkContext.emptyRDD
+    }
 
     conditionOccurrence
       .map(mapToPersonIdConceptId)
@@ -89,8 +91,18 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
       conditionEndDate = formatter.parseDateTime(row.getString(4))
     }
 
-    ((personId, conditionConceptId), List((conditionStartDate.withTimeAtStartOfDay, conditionEndDate.withTimeAtStartOfDay)))
+    ((personId, conditionConceptId), List((conditionStartDate, conditionEndDate)))
   }
 
+  /**
+    * Load the condition occurrence data frame
+    *
+    * @return the data frame for condition occurrence
+    */
+  private def loadConditionOccurrence: DataFrame = {
+    csvDataReader
+      .load(getDataFile(config.getString("ohdsi.data.conditionOccurrence")))
+      .cache
+  }
 
 }
