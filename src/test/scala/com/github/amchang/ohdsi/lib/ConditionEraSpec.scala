@@ -115,7 +115,18 @@ class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
   }
 
   describe("writeCSV") {
+    it("does nothing considering it has nothing to write") {
+      intercept[NullPointerException] {
+        conditionEra.writeCSV
+      }
+    }
 
+    it("writes a csv file out") {
+      when(conf.getString("ohdsi.csv.location")).thenReturn("/tmp/")
+
+      conditionEra.build
+      conditionEra.writeCSV
+    }
   }
 
 }

@@ -3,6 +3,7 @@ package com.github.amchang.ohdsi.lib
 import org.apache.spark.rdd.RDD
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
@@ -29,19 +30,24 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   type Count = Int
 
   /**
+    * Store the most recent build for csv writing
+    */
+  private var mostRecentBuild: RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)] = null
+
+  /**
     * Build an entire era for drugs
     *
-    * @return RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)], similar to the results from
+    * @return RDD[(PersonId, ConditionConceptId, DateTime, DateTime, Count)], similar to the results from
     *         the comparable sql query
     */
-  def build: RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)] = {
+  def build: RDD[(PersonId, ConditionConceptId, DateTime, DateTime, Count)] = {
     val conditionOccurrence = loadConditionOccurrence
 
     if (conditionOccurrence.count == 0) {
       return sparkContext.emptyRDD
     }
 
-    conditionOccurrence
+    mostRecentBuild = conditionOccurrence
       .map(mapToPersonIdConceptId(config.getString("ohdsi.dateFormat")))
       .reduceByKey(_ ++ _)
       .map {
@@ -58,7 +64,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
       }
       // get rid of dups
       .reduceByKey(_ + _)
-      .map{
+      .map {
         // flatten out everything with the count
         case ((personId, conditionConceptId, startDateEra, endDateEra), count) =>
           (personId, conditionConceptId, startDateEra, endDateEra, count)
@@ -69,6 +75,34 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
           (personId, conditionConceptId, startDateEra.getMillis * -1)
       }
       .cache
+
+    mostRecentBuild
+  }
+
+  /**
+    * Override the write csv method to write out a csv as neccessary
+    */
+  override def writeCSV = {
+    val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+    val rowRdd = mostRecentBuild.zipWithIndex.map {
+      case ((personId, conditionConceptId, startDate, endDate, count), index) =>
+        Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
+          endDate.toString(format.value), count.toString)
+    }.sortBy(_.getString(0))
+
+    sqlContext.createDataFrame(rowRdd, StructType(List(
+        StructField("condition_occurrence_id", StringType, true),
+        StructField("person_id", StringType, true),
+        StructField("condition_concept_id", StringType, true),
+        StructField("condition_era_start_date", StringType, true),
+        StructField("condition_era_end_date", StringType, true),
+        StructField("condition_occurrence_count", StringType, true)
+      )))
+      .write
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .save(s"${config.getString("ohdsi.csv.location")}condition_era_${System.currentTimeMillis()}")
+
   }
 
   /**

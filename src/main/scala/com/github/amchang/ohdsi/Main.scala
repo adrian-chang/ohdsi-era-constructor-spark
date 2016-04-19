@@ -1,6 +1,7 @@
 package com.github.amchang.ohdsi
 
 import com.github.amchang.ohdsi.lib.{ConditionEra, DoseEra}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -25,11 +26,18 @@ object Main {
   def main(args: Array[String]) {
     val sparkConfig = new SparkConf()
       .setAppName("era")
-      .setMaster("local[8]")
+      .setMaster("local")
     implicit val sparkContext = new SparkContext(sparkConfig)
+    implicit val config = ConfigFactory.load()
 
-   // new ConditionEra().build
-    new DoseEra().build
+    val conditionEra = new ConditionEra()
+    conditionEra.build
+   // new DoseEra().build
+
+    // do we need to write csvs
+    if (config.getBoolean("ohdsi.csv.enabled")) {
+      conditionEra.writeCSV
+    }
 
     // stop the spark context
     sparkContext.stop()
