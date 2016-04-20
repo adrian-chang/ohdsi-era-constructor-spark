@@ -44,6 +44,7 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
     mostRecentBuild = bareData
       .reduceByKey(_ ++ _)
       .map {
+        // at this rate we have all of the dates for a particular key
         case ((personId, drugConceptId, unitConceptId, doseValue), dateList) =>
           ((personId, drugConceptId, unitConceptId, doseValue), Era.rangeBuilder(dateList))
       }

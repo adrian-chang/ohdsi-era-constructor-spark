@@ -1,10 +1,10 @@
 package com.github.amchang.ohdsi.lib
 
-import org.apache.spark.rdd.RDD
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
 /**
@@ -62,7 +62,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
               ((personId, conditionConceptId, firstDate, secondDate), count)
           }
       }
-      // get rid of dups
+      // get rid of timelines that are exactly on each other
       .reduceByKey(_ + _)
       .map {
         // flatten out everything with the count
@@ -80,7 +80,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   }
 
   /**
-    * Override the write csv method to write out a csv as neccessary
+    * Override the write csv method to write out a csv as necessary
     */
   override def writeCSV = {
     val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))

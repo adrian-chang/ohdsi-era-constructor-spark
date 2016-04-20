@@ -47,65 +47,145 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       assert(doseEra.build.isEmpty)
     }
 
-    /*it("returns a singular RDD") {
-      conditionOccurrenceData = List(
-        Row("165361", "0", "138525", "20100630", "20100630")
+    it("returns a singular RDD") {
+      val firstDate = "20080605"
+      doseEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        )
       )
 
-      val result = conditionEra.build.collect
+      val result = doseEra.build.collect
 
       assert(result.length == 1)
-      assert(result(0) ==(0, 138525, dateStringFormatter.parseDateTime("20100630"), dateStringFormatter.parseDateTime("20100630"), 1))
+      assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
     }
 
     it("returns an RDD with two non overlapping ranges") {
-      conditionOccurrenceData = List(
-        Row("165361", "0", "138525", "20100630", "20100630"),
-        Row("178861", "0", "138525", "20091203", "20091203")
+      val firstDate = "20080605"
+      val secondDate = "20080331"
+      doseEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
+        )
       )
 
-      val result = conditionEra.build.collect
+      val result = doseEra.build.collect
 
       assert(result.length == 2)
-      assert(result(0) ==(0, 138525, dateStringFormatter.parseDateTime("20100630"), dateStringFormatter.parseDateTime("20100630"), 1))
-      assert(result(1) ==(0, 138525, dateStringFormatter.parseDateTime("20091203"), dateStringFormatter.parseDateTime("20091203"), 1))
+      assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
+      )
+      assert(
+        result(1) == (0, 948078, "", "",
+          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
+      )
+    }
+
+    it("returns an RDD with two non overlapping ranges yet there are three ranges but two are equal") {
+      val firstDate = "20080605"
+      val secondDate = "20080331"
+      doseEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
+        ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
+        )
+      )
+
+      val result = doseEra.build.collect
+
+      assert(result.length == 2)
+      assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
+      )
+      assert(
+        result(1) == (0, 948078, "", "",
+          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
+      )
     }
 
     it("returns an RDD with two ranges, one overlapping") {
-      conditionOccurrenceData = List(
-        Row("165361", "0", "138525", "20100630", "20100630"),
-        Row("142861", "0", "138525", "20100609", "20100609"),
-        Row("178861", "0", "138525", "20091203", "20091203")
+      val firstDate = "20080605"
+      val secondDate = "20080331"
+      val thirdDate = "20080410"
+      doseEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
+          ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(thirdDate), dateStringFormatter.parseDateTime(thirdDate)))
+        )
       )
 
-      val result = conditionEra.build.collect
+      val result = doseEra.build.collect
 
       assert(result.length == 2)
-      assert(result(0) ==(0, 138525, dateStringFormatter.parseDateTime("20100609"), dateStringFormatter.parseDateTime("20100630"), 2))
-      assert(result(1) ==(0, 138525, dateStringFormatter.parseDateTime("20091203"), dateStringFormatter.parseDateTime("20091203"), 1))
+      assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
+      )
+      assert(
+        result(1) == (0, 948078, "", "",
+          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
+      )
     }
 
     it("returns an RDD with three ranges, one overlapping") {
-      conditionOccurrenceData = List(
-        Row("165361", "0", "138525", "20100630", "20100630"),
-        Row("142861", "0", "138525", "20100609", "20100609"),
-        Row("178861", "0", "138525", "20091203", "20091203"),
-        Row("208861", "1", "138525", "20120104", "20120201")
+      val firstDate = "20080605"
+      val secondDate = "20080331"
+      val thirdDate = "20080410"
+      doseEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+          ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
+          ),
+        (
+          (0, 948078, "", ""),
+          List((dateStringFormatter.parseDateTime(thirdDate), dateStringFormatter.parseDateTime(thirdDate)))
+        )
       )
 
-      val result = conditionEra.build.collect
+      val result = doseEra.build.collect
 
-      assert(result.length == 3)
-      assert(result(0) ==(0, 138525, dateStringFormatter.parseDateTime("20100609"), dateStringFormatter.parseDateTime("20100630"), 2))
-      assert(result(1) ==(0, 138525, dateStringFormatter.parseDateTime("20091203"), dateStringFormatter.parseDateTime("20091203"), 1))
-      assert(result(2) ==(1, 138525, dateStringFormatter.parseDateTime("20120104"), dateStringFormatter.parseDateTime("20120201"), 1))
-    }*/
+      assert(result.length == 2)
+      assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
+      )
+      assert(
+        result(1) == (0, 948078, "", "",
+          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
+      )
+    }
   }
 
   describe("writeCSV") {
     it("does nothing considering it has nothing to write") {
       intercept[NullPointerException] {
-     //   conditionEra.writeCSV
+        conditionEra.writeCSV
       }
     }
 
