@@ -6,7 +6,8 @@ import com.github.nscala_time.time.Imports._
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
 
 /**
@@ -24,13 +25,23 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
   protected val config = conf
 
   /**
+    * Store the most recent build
+    */
+  private var mostRecentBuild: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)] = null
+
+  /**
     * Build Dosage Eras
     */
   def build: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)] = {
     // the entire data
     val bareData = createInitialData()
 
-    val result = bareData
+    // nothing return nothing
+    if (bareData.count == 0) {
+      return sparkContext.emptyRDD
+    }
+
+    mostRecentBuild = bareData
       .reduceByKey(_ ++ _)
       .map {
         case ((personId, drugConceptId, unitConceptId, doseValue), dateList) =>
@@ -40,12 +51,12 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
         // find the count of net ranges
         case (((personId, drugConceptId, unitConceptId, doseValue), finalCombine)) =>
           finalCombine.map {
-            case ((firstDate, secondDate), count) =>
+            case ((firstDate, secondDate), count, noStockpile, stockpile)  =>
               // differs slightly from project, no count
               (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
         }
       }
-      // get rid of dups
+      // get rid of duplicates
       .distinct
       .map{
         // flatten out everything with the count
@@ -59,9 +70,32 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
       }
       .cache
 
-    result
+    mostRecentBuild
   }
 
+  /**
+    * Write the result of the most recent build
+    */
+  override def writeCSV() =  {
+   /* val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+    val rowRdd = mostRecentBuild.zipWithIndex.map {
+      case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
+        Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
+          endDate.toString(format.value), count.toString)
+    }.sortBy(_.getString(0))
 
+    sqlContext.createDataFrame(rowRdd, StructType(List(
+      StructField("condition_occurrence_id", StringType, true),
+      StructField("person_id", StringType, true),
+      StructField("condition_concept_id", StringType, true),
+      StructField("condition_era_start_date", StringType, true),
+      StructField("condition_era_end_date", StringType, true),
+      StructField("condition_occurrence_count", StringType, true)
+    )))
+      .write
+      .format("com.databricks.spark.csv")
+      .option("header", "true")
+      .save(s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}")*/
+  }
 
 }

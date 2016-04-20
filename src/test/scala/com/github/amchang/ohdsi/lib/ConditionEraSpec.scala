@@ -19,7 +19,7 @@ class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
 
   // setup values
   val sparkConf: SparkConf = new SparkConf()
-    .setAppName("drug_exposure_spec")
+    .setAppName("condition_era_spec")
     .setMaster("local")
   implicit val conf = mock[Config]
   implicit val sparkCont: SparkContext = new SparkContext(sparkConf)

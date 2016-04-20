@@ -102,7 +102,6 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .save(s"${config.getString("ohdsi.csv.location")}condition_era_${System.currentTimeMillis()}")
-
   }
 
   /**
