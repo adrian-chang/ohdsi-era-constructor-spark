@@ -2,16 +2,16 @@ package com.github.amchang.ohdsi.lib
 
 import java.lang.reflect.Field
 
-import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.{SparkConf, SparkContext}
+import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, _}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
-import org.mockito.Mockito._
 
 
 /**
@@ -20,12 +20,12 @@ import org.mockito.Mockito._
 class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // entire base data
-  val sparkConf: SparkConf = new SparkConf()
-    .setAppName("drug_exposure_spec")
-    .setMaster("local")
-  val conf = mock[Config]
-  val sparkCont: SparkContext = new SparkContext(sparkConf)
-  val sqlCont: SQLContext = new SQLContext(sparkCont)
+  var conf: Config = null
+  var sparkCont: SparkContext = null
+  var sqlCont: SQLContext = null
+  // stub the cache file location
+  val dateStringFormat = "yyyyMMdd"
+  var formatter: DateTimeFormatter = null
 
   // schemas
   val drugExposureSchema = StructType(List(
@@ -63,12 +63,6 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
   var loadConceptAncestor: Field = null
   var loadConcept: Field = null
   var createInitialData: () => RDD[((Int, Int, String, String), List[(DateTime, DateTime)])] = null
-
-  // stub the cache file location
-  val dateStringFormat = "yyyyMMdd"
-  val formatter = DateTimeFormat.forPattern(dateStringFormat)
-  when(conf.getString("ohdsi.cache.location")).thenReturn("/tmp")
-  when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
 
   var exposureData: List[Row] = List()
   var conceptAncestorData: List[Row] = List()
@@ -117,8 +111,23 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
     }: DataFrame)
   }
 
+
+  override protected def beforeAll() = {
+    val sparkConf: SparkConf = new SparkConf()
+      .setAppName("drug_exposure_spec")
+      .setMaster("local")
+    conf = mock[Config]
+    sparkCont = new SparkContext(sparkConf)
+    sqlCont = new SQLContext(sparkCont)
+
+    formatter = DateTimeFormat.forPattern(dateStringFormat)
+    when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
+    when(conf.getString("ohdsi.cache.location")).thenReturn("/tmp")
+    when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
+  }
+
   override protected def afterAll() = {
-    sparkCont.stop()
+    sparkCont.stop
   }
 
   describe("DrugExposure") {

@@ -2,12 +2,10 @@ package com.github.amchang.ohdsi.lib
 
 import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, DataFrameReader, Row, SQLContext}
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
@@ -26,7 +24,6 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
   var doseEraData: List[((Int, Int, String, String), List[(DateTime, DateTime)])] = List()
   val dateStringFormat = "yyyyMMdd"
   var dateStringFormatter: DateTimeFormatter = null
-
 
   override protected def beforeAll() = {
     val sparkConf: SparkConf = new SparkConf()
@@ -206,8 +203,9 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
     }
 
     it("writes a csv file out") {
-      import better.files._
       import java.io.{File => JFile}
+
+      import better.files._
 
       val firstDate = "20080605"
       val secondDate = "20080331"

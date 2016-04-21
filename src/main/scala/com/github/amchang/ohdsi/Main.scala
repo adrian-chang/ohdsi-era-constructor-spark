@@ -32,11 +32,14 @@ object Main {
 
     val conditionEra = new ConditionEra()
     conditionEra.build
-   // new DoseEra().build
+
+    val doseEra = new DoseEra()
+    doseEra.build
 
     // do we need to write csvs
     if (config.getBoolean("ohdsi.csv.enabled")) {
       conditionEra.writeCSV
+      doseEra.writeCSV
     }
 
     // stop the spark context
