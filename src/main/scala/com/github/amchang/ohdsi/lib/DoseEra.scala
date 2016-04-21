@@ -1,14 +1,10 @@
 package com.github.amchang.ohdsi.lib
 
-import java.nio.file.{Files, Paths}
-
-import com.github.nscala_time.time.Imports._
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
-
+import org.apache.spark.sql.{Row, SQLContext}
 
 /**
   * Replication of functionality in
@@ -32,7 +28,7 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
   /**
     * Build Dosage Eras
     *
-    * @return RDD of (PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate) or none
+    * @return RDD of (PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)
     */
   def build: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)] = {
     // the entire data

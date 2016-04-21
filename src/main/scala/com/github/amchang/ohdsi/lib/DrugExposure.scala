@@ -19,6 +19,7 @@ abstract class DrugExposure extends Spark {
   type DrugExposureStartDate = DateTime
   type DaysSupply = String
   type DrugExposureEndDate = DateTime
+  type GapDays = Int
 
   /**
     * Create the initial set of data to use for later merging
