@@ -42,6 +42,7 @@ abstract class DrugExposure extends Spark {
         val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
         val dateFormat = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
 
+        // this will eliminate duplicates, one drugConceptId to one, versus many unlike the original implementation
         val result = drugExposure.map { row =>
           val drugConceptId = row.getString(2).toInt
           val remainderMap = remainder.value
