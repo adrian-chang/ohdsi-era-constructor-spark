@@ -22,7 +22,7 @@ class DrugEraNonStockpile(implicit sparkCont: SparkContext, conf: Config = Confi
   /**
     * Store the most recent build
     */
-  private val mostRecentBuild: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate, GapDays)] = null
+  private var mostRecentBuild: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate, GapDays)] = null
 
   /**
     * Build the entire RDD here for a drug era with the non stockpile method
@@ -52,19 +52,19 @@ class DrugEraNonStockpile(implicit sparkCont: SparkContext, conf: Config = Confi
           finalCombine.map {
             case ((firstDate, secondDate), count, noStockpile, stockpile)  =>
               // differs slightly from project, no count
-              (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate, noStockpile)
+              ((personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate), noStockpile)
           }
       }
       // get rid of duplicates
       .reduceByKey(_ + _)
       .map{
         // flatten out everything with the count
-        case (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate) =>
-          (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate)
+        case ((personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate), gapDays) =>
+          (personId, drugConceptId, unitConceptId, doseValue, firstDate, secondDate, gapDays)
       }
       .sortBy {
         // sort by person id, conditionConceptId, and startDateEra desc
-        case (personId, drugConceptId, unitConceptId, doseValue, startDate, endDate) =>
+        case (personId, drugConceptId, unitConceptId, doseValue, startDate, endDate, gapDays) =>
           (personId, drugConceptId, startDate.getMillis * -1)
       }
       .cache
