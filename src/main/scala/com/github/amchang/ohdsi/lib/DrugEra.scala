@@ -99,9 +99,11 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
           Row(index.toString, personId.toString, drugConceptId.toString,
             startDate.toString(format.value), endDate.toString(format.value),
             exposureCount.toString, gapDays.toString)
-      }.sortBy(_.getString(0))
+      }.sortBy {
+        _.getString(0).toInt
+      }
 
-      val location = s"${config.getString("ohdsi.csv.location")}dose_era_${if (!mostRecentStockUsed) "non_stockpile" else "stockpile"}_${System.currentTimeMillis()}"
+      val location = s"${config.getString("ohdsi.csv.location")}drug_era_${if (!mostRecentStockUsed) "non_stockpile" else "stockpile"}_${System.currentTimeMillis()}"
 
       sqlContext.createDataFrame(rowRdd, StructType(List(
           StructField("drug_era_id", StringType, true),

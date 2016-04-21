@@ -2,6 +2,7 @@ package com.github.amchang.ohdsi
 
 import com.github.amchang.ohdsi.lib.{ConditionEra, DoseEra, DrugEra}
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -24,6 +25,11 @@ object Main {
     *             See the README.me for all command line arguments, or application.conf
     */
   def main(args: Array[String]) {
+    // default this
+    val level = Level.WARN
+    Logger.getLogger("org").setLevel(level)
+    Logger.getLogger("akka").setLevel(level)
+
     val sparkConfig = new SparkConf()
       .setAppName("era")
       .setMaster("local")
@@ -45,10 +51,10 @@ object Main {
 
     // do we need to write csvs
     if (config.getBoolean("ohdsi.csv.enabled")) {
-      conditionEra.writeCSV
-      doseEra.writeCSV
-      drugEraNonStockpile.writeCSV
-      drugEraStockpile.writeCSV
+      println(s"writing condition era at ${conditionEra.writeCSV.get}")
+      println(s"writing dose era at ${doseEra.writeCSV.get}")
+      println(s"writing drug era non stockpile at ${drugEraNonStockpile.writeCSV.get}")
+      println(s"writing drug era stockpile at ${drugEraStockpile.writeCSV.get}")
     }
 
     // stop the spark context

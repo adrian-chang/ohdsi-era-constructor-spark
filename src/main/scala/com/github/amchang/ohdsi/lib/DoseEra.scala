@@ -84,7 +84,9 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
         case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
           Row(index.toString, personId.toString, drugConceptId.toString, unitConceptId.toString,
             doseValue.toString, startDate.toString(format.value), endDate.toString(format.value))
-      }.sortBy(_.getString(0))
+      }.sortBy{
+        _.getString(0).toInt
+      }
 
 
       val location = s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}"

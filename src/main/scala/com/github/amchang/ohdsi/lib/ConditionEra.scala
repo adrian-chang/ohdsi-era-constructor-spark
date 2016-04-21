@@ -92,7 +92,9 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
         case ((personId, conditionConceptId, startDate, endDate, count), index) =>
           Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
             endDate.toString(format.value), count.toString)
-      }.sortBy(_.getString(0))
+      }.sortBy{
+        _.getString(0).toInt
+      }
 
       val location = s"${config.getString("ohdsi.csv.location")}condition_era_${System.currentTimeMillis()}"
       sqlContext.createDataFrame(rowRdd, StructType(List(
