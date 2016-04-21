@@ -11,23 +11,23 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
 
 /**
-  * Test for DrugEraNonStockpile
+  * Test for DrugEra
   */
-class DrugEraNonStockpileSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
+class DrugEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // setup values
   implicit var conf: Config = null
   implicit var sparkCont: SparkContext = null
   var sqlCont: SQLContext = null
 
-  var drugEraNonStockpile: DrugEraNonStockpile = null
+  var drugEraNonStockpile: DrugEra = null
   var drugEraNonStockpileData: List[((Int, Int, String, String), List[(DateTime, DateTime)])] = List()
   val dateStringFormat = "yyyyMMdd"
   var dateStringFormatter: DateTimeFormatter = null
 
   override protected def beforeAll() = {
     val sparkConf: SparkConf = new SparkConf()
-      .setAppName("dose_era_spec")
+      .setAppName("drug_era_spec")
       .setMaster("local")
     conf = mock[Config]
     sparkCont = new SparkContext(sparkConf)
@@ -42,7 +42,7 @@ class DrugEraNonStockpileSpec extends FunSpec with BeforeAndAfter with MockitoSu
   }
 
   before {
-    drugEraNonStockpile = new DrugEraNonStockpile()
+    drugEraNonStockpile = new DrugEra()
 
     val createInitialData = classOf[DrugExposure].getDeclaredField("createInitialData")
     createInitialData.setAccessible(true)

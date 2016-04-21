@@ -204,7 +204,6 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
 
     it("writes a csv file out") {
       import java.io.{File => JFile}
-
       import better.files._
 
       val firstDate = "20080605"
