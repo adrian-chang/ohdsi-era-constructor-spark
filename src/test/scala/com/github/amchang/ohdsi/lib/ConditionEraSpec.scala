@@ -5,7 +5,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrameReader, Row, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
 import org.mockito.Matchers._
@@ -18,18 +19,30 @@ import org.mockito.Mockito._
 class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // setup values
-  val sparkConf: SparkConf = new SparkConf()
-    .setAppName("condition_era_spec")
-    .setMaster("local")
-  implicit val conf = mock[Config]
-  implicit val sparkCont: SparkContext = new SparkContext(sparkConf)
-  val sqlCont: SQLContext = new SQLContext(sparkCont)
+  implicit var conf: Config = null
+  implicit var sparkCont: SparkContext = null
+  var sqlCont: SQLContext = null
 
   var conditionEra: ConditionEra = null
   var conditionOccurrenceData: List[Row] = List()
   val dateStringFormat = "yyyyMMdd"
-  val dateStringFormatter = DateTimeFormat.forPattern(dateStringFormat)
-  when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
+  var dateStringFormatter: DateTimeFormatter = null
+
+  override protected def beforeAll() = {
+    val sparkConf: SparkConf = new SparkConf()
+      .setAppName("dose_era_spec")
+      .setMaster("local")
+    conf = mock[Config]
+    sparkCont = new SparkContext(sparkConf)
+    sqlCont = new SQLContext(sparkCont)
+
+    dateStringFormatter = DateTimeFormat.forPattern(dateStringFormat)
+    when(conf.getString("ohdsi.dateFormat")).thenReturn(dateStringFormat)
+  }
+
+  override protected def afterAll() = {
+    sparkCont.stop
+  }
 
   before {
     conditionEra = new ConditionEra() {

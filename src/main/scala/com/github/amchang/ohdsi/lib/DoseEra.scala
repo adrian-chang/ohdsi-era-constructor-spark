@@ -31,6 +31,8 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
 
   /**
     * Build Dosage Eras
+    *
+    * @return RDD of (PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate) or none
     */
   def build: RDD[(PersonId, DrugConceptId, UnitConceptId, DoseValue, DrugExposureStartDate, DrugExposureEndDate)] = {
     // the entire data
@@ -76,28 +78,37 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
 
   /**
     * Write the result of the most recent build
+    * @return Option[String] location of file written
     */
   override def writeCSV(): Option[String] =  {
-  /*  val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
-    val rowRdd = mostRecentBuild.zipWithIndex.map {
-      case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
-        Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
-          endDate.toString(format.value), count.toString)
-    }.sortBy(_.getString(0))
+    if (mostRecentBuild != null) {
+      val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+      val rowRdd = mostRecentBuild.zipWithIndex.map {
+        case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
+          Row(index.toString, personId.toString, drugConceptId.toString, unitConceptId.toString,
+            doseValue.toString, startDate.toString(format.value), endDate.toString(format.value))
+      }.sortBy(_.getString(0))
 
-    sqlContext.createDataFrame(rowRdd, StructType(List(
-        StructField("condition_occurrence_id", StringType, true),
-        StructField("person_id", StringType, true),
-        StructField("condition_concept_id", StringType, true),
-        StructField("condition_era_start_date", StringType, true),
-        StructField("condition_era_end_date", StringType, true),
-        StructField("condition_occurrence_count", StringType, true)
-      )))
-      .write
-      .format("com.databricks.spark.csv")
-      .option("header", "true")
-      .save(s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}")*/
-    Some(null)
+
+      val location = s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}"
+      sqlContext.createDataFrame(rowRdd, StructType(List(
+          StructField("dose_era_id", StringType, true),
+          StructField("person_id", StringType, true),
+          StructField("drug_concept_id", StringType, true),
+          StructField("unit_concept_id", StringType, true),
+          StructField("dose_value", StringType, true),
+          StructField("dose_era_start_date", StringType, true),
+          StructField("dose_era_end_date", StringType, true)
+        )))
+        .write
+        .format("com.databricks.spark.csv")
+        .option("header", "true")
+        .save(location)
+
+      Some(location)
+    } else {
+      None
+    }
   }
 
 }
