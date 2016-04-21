@@ -31,7 +31,7 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
     * @return @return RDD of (PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)
     *         with the non stockpile method
     */
-  def build(): RDD[(PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)] = {
+  def build(stock: Boolean = false): RDD[(PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)] = {
     // the entire data
     val bareData = createInitialData()
 
@@ -39,6 +39,8 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
     if (bareData.count == 0) {
       return sparkContext.emptyRDD
     }
+
+    val stockSpark = sparkContext.broadcast(stock)
 
     mostRecentBuild = bareData
       .reduceByKey(_ ++ _)
@@ -53,7 +55,7 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
           finalCombine.map {
             case ((firstDate, secondDate), count, noStockpile, stockpile)  =>
               // differs slightly from project, no count
-              ((personId, drugConceptId, firstDate, secondDate), (count, noStockpile))
+              ((personId, drugConceptId, firstDate, secondDate), (count, if (!stockSpark.value) noStockpile else stockpile))
           }
       }
       // get rid of duplicates
