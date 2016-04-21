@@ -36,6 +36,7 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
 
     // nothing return nothing
     if (bareData.count == 0) {
+      mostRecentBuild = sparkContext.emptyRDD
       return sparkContext.emptyRDD
     }
 

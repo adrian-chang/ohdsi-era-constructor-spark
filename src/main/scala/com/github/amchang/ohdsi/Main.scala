@@ -1,6 +1,6 @@
 package com.github.amchang.ohdsi
 
-import com.github.amchang.ohdsi.lib.{ConditionEra, DoseEra}
+import com.github.amchang.ohdsi.lib.{ConditionEra, DoseEra, DrugEra}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -37,10 +37,18 @@ object Main {
     val doseEra = new DoseEra()
     doseEra.build
 
+    val drugEraNonStockpile = new DrugEra()
+    drugEraNonStockpile.build()
+
+    val drugEraStockpile = new DrugEra()
+    drugEraStockpile.build(true)
+
     // do we need to write csvs
     if (config.getBoolean("ohdsi.csv.enabled")) {
       conditionEra.writeCSV
       doseEra.writeCSV
+      drugEraNonStockpile.writeCSV
+      drugEraStockpile.writeCSV
     }
 
     // stop the spark context

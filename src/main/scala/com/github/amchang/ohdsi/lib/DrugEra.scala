@@ -26,6 +26,11 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
   private var mostRecentBuild: RDD[(PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)] = null
 
   /**
+    * Store the most recent method used
+    */
+  private var mostRecentStockUsed: Boolean = false
+
+  /**
     * Build the entire RDD here for a drug era with the non stockpile method
     *
     * @return @return RDD of (PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)
@@ -34,9 +39,11 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
   def build(stock: Boolean = false): RDD[(PersonId, DrugConceptId, DrugExposureStartDate, DrugExposureEndDate, ExposureCount, GapDays)] = {
     // the entire data
     val bareData = createInitialData()
+    mostRecentStockUsed = stock
 
     // nothing return nothing
     if (bareData.count == 0) {
+      mostRecentBuild = sparkContext.emptyRDD
       return sparkContext.emptyRDD
     }
 
@@ -85,22 +92,23 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
     * @return the string where the file was written to
     */
   override def writeCSV(): Option[String] = {
-   /* if (mostRecentBuild != null) {
+    if (mostRecentBuild != null) {
       val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
       val rowRdd = mostRecentBuild.zipWithIndex.map {
-        case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
-          Row(index.toString, personId.toString, drugConceptId.toString, unitConceptId.toString,
-            doseValue.toString, startDate.toString(format.value), endDate.toString(format.value))
+        case ((personId, drugConceptId, startDate, endDate, exposureCount, gapDays), index) =>
+          Row(index.toString, personId.toString, drugConceptId.toString,
+            startDate.toString(format.value), endDate.toString(format.value),
+            exposureCount.toString, gapDays.toString)
       }.sortBy(_.getString(0))
 
+      val location = s"${config.getString("ohdsi.csv.location")}dose_era_${if (!mostRecentStockUsed) "non_stockpile" else "stockpile"}_${System.currentTimeMillis()}"
 
-      val location = s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}"
       sqlContext.createDataFrame(rowRdd, StructType(List(
           StructField("drug_era_id", StringType, true),
           StructField("person_id", StringType, true),
           StructField("drug_concept_id", StringType, true),
-          StructField("dose_era_start_date", StringType, true),
-          StructField("dose_era_end_date", StringType, true),
+          StructField("drug_era_start_date", StringType, true),
+          StructField("drug_era_end_date", StringType, true),
           StructField("drug_exposure_count", StringType, true),
           StructField("gap_days", StringType, true)
         )))
@@ -112,7 +120,6 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
       Some(location)
     } else {
       None
-    }*/
-    None
+    }
   }
 }

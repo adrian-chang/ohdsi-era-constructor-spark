@@ -339,13 +339,11 @@ class DrugEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
     }
 
     it("writes a csv file out") {
-   /*   import java.io.{File => JFile}
+      import java.io.{File => JFile}
       import better.files._
 
       val firstDate = "20080605"
-      val secondDate = "20080331"
-      val thirdDate = "20080410"
-      val fourthDate = "20100901"
+      val secondDate = "20080625"
       drugEraData = List(
         (
           (0, 903963, "", ""),
@@ -353,21 +351,13 @@ class DrugEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
         ),
         (
           (0, 903963, "", ""),
-          List((dateStringFormatter.parseDateTime(fourthDate), dateStringFormatter.parseDateTime(fourthDate)))
-        ),
-        (
-          (0, 948078, "", ""),
-          List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
-        ),
-        (
-          (0, 948078, "", ""),
-          List((dateStringFormatter.parseDateTime(thirdDate), dateStringFormatter.parseDateTime(thirdDate)))
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate)))
         )
       )
 
       when(conf.getString("ohdsi.csv.location")).thenReturn("/tmp/")
 
-      drugEra.build
+      drugEra.build()
 
       val result = drugEra.writeCSV.get
       val resultFile = File(s"${result}/part-00000")
@@ -375,10 +365,8 @@ class DrugEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       assert(resultFile.exists)
 
       val lines = resultFile.lines.toArray
-      assert(lines(0) == "dose_era_id,person_id,drug_concept_id,unit_concept_id,dose_value,dose_era_start_date,dose_era_end_date")
-      assert(lines(1) == "0,0,903963,,,20100901,20100901")
-      assert(lines(2) == "1,0,903963,,,20080605,20080605")
-      assert(lines(3) == "2,0,948078,,,20080331,20080410")*/
+      assert(lines(0) == "drug_era_id,person_id,drug_concept_id,drug_era_start_date,drug_era_end_date,drug_exposure_count,gap_days")
+      assert(lines(1) == "0,0,903963,20080605,20080625,2,0")
     }
   }
 

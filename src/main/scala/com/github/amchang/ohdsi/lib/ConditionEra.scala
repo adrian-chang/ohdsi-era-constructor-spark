@@ -44,6 +44,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
     val conditionOccurrence = loadConditionOccurrence
 
     if (conditionOccurrence.count == 0) {
+      mostRecentBuild = sparkContext.emptyRDD
       return sparkContext.emptyRDD
     }
 
