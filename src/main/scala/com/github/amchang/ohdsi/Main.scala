@@ -30,6 +30,7 @@ object Main {
     implicit val sparkContext = new SparkContext(sparkConfig)
     implicit val config = ConfigFactory.load()
 
+    // all of the different eras
     val conditionEra = new ConditionEra()
     conditionEra.build
 

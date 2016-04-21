@@ -205,6 +205,132 @@ class DrugEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
         2, 10)
       )
     }
+
+    it("returns an RDD for two dates that start / end on each other") {
+      val firstDate = "20080605"
+      drugEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        )
+      )
+
+      val result = drugEra.build().collect
+
+      assert(result.length == 1)
+      assert(result(0) == (0, 903963,
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate),
+        2, 0)
+      )
+    }
+
+    it("returns an rdd for two ranges that start but don\'t end at the same time non stockpile") {
+      val firstDate = "20080605"
+      val secondDate = "20080625"
+      drugEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate)))
+        )
+      )
+
+      val result = drugEra.build().collect
+
+      assert(result.length == 1)
+      assert(result(0) == (0, 903963,
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate),
+        2, 0)
+      )
+    }
+
+    it("returns an rdd for two ranges that start but don\'t end at the same time stockpile") {
+      val firstDate = "20080605"
+      val secondDate = "20080625"
+      drugEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate)))
+        )
+      )
+
+      val result = drugEra.build(true).collect
+
+      assert(result.length == 1)
+      assert(result(0) == (0, 903963,
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate),
+        2, -1)
+      )
+    }
+
+    it("returns an rdd for three ranges that start but don\'t end at the same time non stockpile") {
+      val firstDate = "20080605"
+      val secondDate = "20080625"
+      val fourthDate = "20080710"
+      val fifthDate = "20080725"
+      drugEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(fourthDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(fifthDate), dateStringFormatter.parseDateTime(fifthDate)))
+        )
+      )
+
+      val result = drugEra.build().collect
+
+      assert(result.length == 1)
+      assert(result(0) == (0, 903963,
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(fifthDate),
+        3, 15)
+      )
+    }
+
+    it("returns an rdd for three ranges that start but don\'t end at the same time stockpile") {
+      val firstDate = "20080605"
+      val secondDate = "20080625"
+      val fourthDate = "20080710"
+      val fifthDate = "20080725"
+      drugEraData = List(
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(secondDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(fourthDate)))
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(fifthDate), dateStringFormatter.parseDateTime(fifthDate)))
+        )
+      )
+
+      val result = drugEra.build(true).collect
+
+      assert(result.length == 1)
+      assert(result(0) == (0, 903963,
+        dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(fifthDate),
+        3, -5)
+      )
+    }
   }
 
   describe("writeCSV") {
