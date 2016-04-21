@@ -67,7 +67,7 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
       .sortBy {
         // sort by person id, conditionConceptId, and startDateEra desc
         case (personId, drugConceptId, unitConceptId, doseValue, startDate, endDate) =>
-          (personId, drugConceptId)
+          (personId, drugConceptId, startDate.getMillis * -1)
       }
       .cache
 
@@ -77,8 +77,8 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
   /**
     * Write the result of the most recent build
     */
-  override def writeCSV() =  {
-   /* val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+  override def writeCSV(): Option[String] =  {
+  /*  val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
     val rowRdd = mostRecentBuild.zipWithIndex.map {
       case ((personId, drugConceptId, unitConceptId, doseValue, startDate, endDate), index) =>
         Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
@@ -86,17 +86,18 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
     }.sortBy(_.getString(0))
 
     sqlContext.createDataFrame(rowRdd, StructType(List(
-      StructField("condition_occurrence_id", StringType, true),
-      StructField("person_id", StringType, true),
-      StructField("condition_concept_id", StringType, true),
-      StructField("condition_era_start_date", StringType, true),
-      StructField("condition_era_end_date", StringType, true),
-      StructField("condition_occurrence_count", StringType, true)
-    )))
+        StructField("condition_occurrence_id", StringType, true),
+        StructField("person_id", StringType, true),
+        StructField("condition_concept_id", StringType, true),
+        StructField("condition_era_start_date", StringType, true),
+        StructField("condition_era_end_date", StringType, true),
+        StructField("condition_occurrence_count", StringType, true)
+      )))
       .write
       .format("com.databricks.spark.csv")
       .option("header", "true")
       .save(s"${config.getString("ohdsi.csv.location")}dose_era_${System.currentTimeMillis()}")*/
+    Some(null)
   }
 
 }

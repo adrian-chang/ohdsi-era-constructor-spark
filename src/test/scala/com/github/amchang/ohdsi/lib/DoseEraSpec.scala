@@ -83,9 +83,8 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       assert(result(0) == (0, 903963, "", "",
         dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
       )
-      assert(
-        result(1) == (0, 948078, "", "",
-          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
+      assert(result(1) == (0, 948078, "", "",
+        dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
       )
     }
 
@@ -113,9 +112,8 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       assert(result(0) == (0, 903963, "", "",
         dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
       )
-      assert(
-        result(1) == (0, 948078, "", "",
-          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
+      assert(result(1) == (0, 948078, "", "",
+        dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate))
       )
     }
 
@@ -144,9 +142,8 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       assert(result(0) == (0, 903963, "", "",
         dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
       )
-      assert(
-        result(1) == (0, 948078, "", "",
-          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
+      assert(result(1) == (0, 948078, "", "",
+        dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
       )
     }
 
@@ -154,15 +151,20 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
       val firstDate = "20080605"
       val secondDate = "20080331"
       val thirdDate = "20080410"
+      val fourthDate = "20100901"
       doseEraData = List(
         (
           (0, 903963, "", ""),
           List((dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate)))
-          ),
+        ),
+        (
+          (0, 903963, "", ""),
+          List((dateStringFormatter.parseDateTime(fourthDate), dateStringFormatter.parseDateTime(fourthDate)))
+        ),
         (
           (0, 948078, "", ""),
           List((dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(secondDate)))
-          ),
+        ),
         (
           (0, 948078, "", ""),
           List((dateStringFormatter.parseDateTime(thirdDate), dateStringFormatter.parseDateTime(thirdDate)))
@@ -171,13 +173,16 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
 
       val result = doseEra.build.collect
 
-      assert(result.length == 2)
+      assert(result.length == 3)
+      // sort is not random unlike the original one
       assert(result(0) == (0, 903963, "", "",
+        dateStringFormatter.parseDateTime(fourthDate), dateStringFormatter.parseDateTime(fourthDate))
+      )
+      assert(result(1) == (0, 903963, "", "",
         dateStringFormatter.parseDateTime(firstDate), dateStringFormatter.parseDateTime(firstDate))
       )
-      assert(
-        result(1) == (0, 948078, "", "",
-          dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
+      assert(result(2) == (0, 948078, "", "",
+        dateStringFormatter.parseDateTime(secondDate), dateStringFormatter.parseDateTime(thirdDate))
       )
     }
   }
@@ -185,7 +190,7 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
   describe("writeCSV") {
     it("does nothing considering it has nothing to write") {
       intercept[NullPointerException] {
-        conditionEra.writeCSV
+        doseEra.writeCSV
       }
     }
 

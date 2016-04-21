@@ -81,27 +81,36 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
 
   /**
     * Override the write csv method to write out a csv as necessary
+    *
+    * @return location of file
     */
-  override def writeCSV = {
-    val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
-    val rowRdd = mostRecentBuild.zipWithIndex.map {
-      case ((personId, conditionConceptId, startDate, endDate, count), index) =>
-        Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
-          endDate.toString(format.value), count.toString)
-    }.sortBy(_.getString(0))
+  override def writeCSV: Option[String] = {
+    if (mostRecentBuild != null) {
+      val format = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+      val rowRdd = mostRecentBuild.zipWithIndex.map {
+        case ((personId, conditionConceptId, startDate, endDate, count), index) =>
+          Row(index.toString, personId.toString, conditionConceptId.toString, startDate.toString(format.value),
+            endDate.toString(format.value), count.toString)
+      }.sortBy(_.getString(0))
 
-    sqlContext.createDataFrame(rowRdd, StructType(List(
-        StructField("condition_occurrence_id", StringType, true),
-        StructField("person_id", StringType, true),
-        StructField("condition_concept_id", StringType, true),
-        StructField("condition_era_start_date", StringType, true),
-        StructField("condition_era_end_date", StringType, true),
-        StructField("condition_occurrence_count", StringType, true)
-      )))
-      .write
-      .format("com.databricks.spark.csv")
-      .option("header", "true")
-      .save(s"${config.getString("ohdsi.csv.location")}condition_era_${System.currentTimeMillis()}")
+      val location = s"${config.getString("ohdsi.csv.location")}condition_era_${System.currentTimeMillis()}"
+      sqlContext.createDataFrame(rowRdd, StructType(List(
+          StructField("condition_occurrence_id", StringType, true),
+          StructField("person_id", StringType, true),
+          StructField("condition_concept_id", StringType, true),
+          StructField("condition_era_start_date", StringType, true),
+          StructField("condition_era_end_date", StringType, true),
+          StructField("condition_occurrence_count", StringType, true)
+        )))
+        .write
+        .format("com.databricks.spark.csv")
+        .option("header", "true")
+        .save(location)
+
+      Some(location)
+    } else {
+      None
+    }
   }
 
   /**

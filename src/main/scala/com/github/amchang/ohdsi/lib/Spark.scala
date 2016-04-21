@@ -84,7 +84,8 @@ trait Spark {
   /**
     * Write the result of the most recent build,
     * default, it will write nothing
+    * @return the string where the file was written to
     */
-  def writeCSV(): Unit = {}
+  def writeCSV(): Option[String] = { None }
 
 }

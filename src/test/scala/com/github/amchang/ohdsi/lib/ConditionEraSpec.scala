@@ -116,16 +116,34 @@ class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
 
   describe("writeCSV") {
     it("does nothing considering it has nothing to write") {
-      intercept[NullPointerException] {
-        conditionEra.writeCSV
-      }
+      assert(conditionEra.writeCSV.isEmpty)
     }
 
     it("writes a csv file out") {
+      import better.files._
+      import java.io.{File => JFile}
+
+      conditionOccurrenceData = List(
+        Row("165361", "0", "138525", "20100630", "20100630"),
+        Row("142861", "0", "138525", "20100609", "20100609"),
+        Row("178861", "0", "138525", "20091203", "20091203"),
+        Row("208861", "1", "138525", "20120104", "20120201")
+      )
+
       when(conf.getString("ohdsi.csv.location")).thenReturn("/tmp/")
 
       conditionEra.build
-      conditionEra.writeCSV
+
+      val result = conditionEra.writeCSV.get
+      val resultFile = File(s"${result}/part-00000")
+
+      assert(resultFile.exists)
+
+      val lines = resultFile.lines.toArray
+      assert(lines(0) == "condition_occurrence_id,person_id,condition_concept_id,condition_era_start_date,condition_era_end_date,condition_occurrence_count")
+      assert(lines(1) == "0,0,138525,20100609,20100630,2")
+      assert(lines(2) == "1,0,138525,20091203,20091203,1")
+      assert(lines(3) == "2,1,138525,20120104,20120201,1")
     }
   }
 
