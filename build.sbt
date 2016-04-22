@@ -34,6 +34,8 @@ libraryDependencies ++= Seq(
 
 // command c
 fork in run := true
+// no parallel tests
+parallelExecution in Test := false
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard

@@ -16,7 +16,7 @@ import org.mockito.Mockito._
 /**
   * Test the condition era class
   */
-class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
+class ConditionEraSpec extends RDDSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // setup values
   implicit var conf: Config = null
@@ -29,6 +29,7 @@ class ConditionEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
   var dateStringFormatter: DateTimeFormatter = null
 
   override protected def beforeAll() = {
+    super.beforeAll
     val sparkConf: SparkConf = new SparkConf()
       .setAppName("dose_era_spec")
       .setMaster("local")

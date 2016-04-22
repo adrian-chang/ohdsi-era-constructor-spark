@@ -17,7 +17,7 @@ import org.scalatest.mock.MockitoSugar
 /**
   * Test out DrugExposure
   */
-class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
+class DrugExposureSpec extends RDDSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // entire base data
   var conf: Config = null
@@ -111,8 +111,8 @@ class DrugExposureSpec extends FunSpec with BeforeAndAfter with MockitoSugar wit
     }: DataFrame)
   }
 
-
   override protected def beforeAll() = {
+    super.beforeAll
     val sparkConf: SparkConf = new SparkConf()
       .setAppName("drug_exposure_spec")
       .setMaster("local")

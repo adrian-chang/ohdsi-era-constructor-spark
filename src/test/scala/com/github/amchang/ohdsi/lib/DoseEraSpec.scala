@@ -13,7 +13,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FunSpec}
 /**
   * Test out the DoseEra class
   */
-class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
+class DoseEraSpec extends RDDSpec with BeforeAndAfter with MockitoSugar with BeforeAndAfterAll {
 
   // setup values
   implicit var conf: Config = null
@@ -26,6 +26,7 @@ class DoseEraSpec extends FunSpec with BeforeAndAfter with MockitoSugar with Bef
   var dateStringFormatter: DateTimeFormatter = null
 
   override protected def beforeAll() = {
+    super.beforeAll
     val sparkConf: SparkConf = new SparkConf()
       .setAppName("dose_era_spec")
       .setMaster("local")
