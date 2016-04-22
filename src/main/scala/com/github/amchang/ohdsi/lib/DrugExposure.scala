@@ -3,6 +3,7 @@ package com.github.amchang.ohdsi.lib
 import com.github.nscala_time.time.Imports._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.storage.StorageLevel
 
 /**
   * This is a shared base class for anyone that attempts to use the drug_condition table
@@ -80,7 +81,7 @@ abstract class DrugExposure extends Spark {
             } else {
               emptyDrugRecord
             }
-          }.filter(_ != emptyDrugRecord).cache
+          }.filter(_ != emptyDrugRecord).persist(StorageLevel.MEMORY_AND_DISK)
 
           initialData = result
         }
@@ -125,7 +126,7 @@ abstract class DrugExposure extends Spark {
           } else {
             emptyConceptId
           }
-        }.filter(_ != emptyConceptId).cache
+        }.filter(_ != emptyConceptId).persist(StorageLevel.MEMORY_AND_DISK)
 
         // this should be small enough to broadcast
         val idsToRemain = sparkContext.broadcast(coMap.collect.toMap)
@@ -140,7 +141,7 @@ abstract class DrugExposure extends Spark {
           } else {
             emptyConceptId
           }
-        }.filter(_ != emptyConceptId).cache
+        }.filter(_ != emptyConceptId).persist(StorageLevel.MEMORY_AND_DISK)
 
         // delete just in case
         file.delete(true)
@@ -163,7 +164,7 @@ abstract class DrugExposure extends Spark {
 
     csvDataReader
       .load(getDataFile(file))
-      .cache
+      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
   /**
@@ -176,7 +177,7 @@ abstract class DrugExposure extends Spark {
 
     csvVocabReader
       .load(getVocabFile(file))
-      .cache
+      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
   /**
@@ -189,7 +190,7 @@ abstract class DrugExposure extends Spark {
 
     csvVocabReader
       .load(getVocabFile(file))
-      .cache
+      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
 }

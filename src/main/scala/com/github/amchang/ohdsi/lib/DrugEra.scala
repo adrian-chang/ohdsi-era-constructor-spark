@@ -5,6 +5,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Calculate drug era's using the non stockpile / stockpile method
@@ -80,7 +81,7 @@ class DrugEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
         case (personId, drugConceptId, startDate, endDate, exposureCount, gapDays) =>
           (personId, drugConceptId, startDate.getMillis * -1)
       }
-      .cache
+      .persist(StorageLevel.MEMORY_AND_DISK)
 
     mostRecentBuild
   }

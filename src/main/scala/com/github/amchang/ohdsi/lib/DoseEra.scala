@@ -5,6 +5,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Replication of functionality in
@@ -68,7 +69,7 @@ class DoseEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactory.loa
         case (personId, drugConceptId, unitConceptId, doseValue, startDate, endDate) =>
           (personId, drugConceptId, startDate.getMillis * -1)
       }
-      .cache
+      .persist(StorageLevel.MEMORY_AND_DISK)
 
     mostRecentBuild
   }

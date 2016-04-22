@@ -45,6 +45,10 @@ object Main {
     val sparkConfig = new SparkConf()
       .setAppName("era")
       .setMaster("local[*]")
+      .set("spark.executor.heartbeatInterval", "300s")
+      .set("spark.driver.memory", "4g")
+      .set("spark.executor.memory", "1g")
+      .set("spark.driver.maxResultSize", "0")
     implicit val sparkContext = new SparkContext(sparkConfig)
     implicit val config = ConfigFactory.load()
 

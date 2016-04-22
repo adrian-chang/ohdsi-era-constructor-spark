@@ -6,6 +6,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.storage.StorageLevel
 
 /**
   * Replicate the functionality within
@@ -82,7 +83,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
         case (personId, conditionConceptId, startDateEra, endDateEra, count) =>
           (personId, conditionConceptId, startDateEra.getMillis * -1)
       }
-      .cache
+      .persist(StorageLevel.MEMORY_AND_DISK)
 
     mostRecentBuild
   }
@@ -153,7 +154,7 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   private def loadConditionOccurrence: DataFrame = {
     csvDataReader
       .load(getDataFile(config.getString("ohdsi.data.conditionOccurrence")))
-      .cache
+      .persist(StorageLevel.DISK_ONLY)
   }
 
 }
