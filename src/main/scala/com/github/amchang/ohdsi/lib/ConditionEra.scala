@@ -154,7 +154,6 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   private def loadConditionOccurrence: DataFrame = {
     csvDataReader
       .load(getDataFile(config.getString("ohdsi.data.conditionOccurrence")))
-      .persist(StorageLevel.DISK_ONLY)
   }
 
 }

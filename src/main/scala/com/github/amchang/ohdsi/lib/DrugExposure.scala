@@ -164,7 +164,6 @@ abstract class DrugExposure extends Spark {
 
     csvDataReader
       .load(getDataFile(file))
-      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
   /**
@@ -177,7 +176,6 @@ abstract class DrugExposure extends Spark {
 
     csvVocabReader
       .load(getVocabFile(file))
-      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
   /**
@@ -190,7 +188,6 @@ abstract class DrugExposure extends Spark {
 
     csvVocabReader
       .load(getVocabFile(file))
-      .persist(StorageLevel.DISK_ONLY)
   } : DataFrame
 
 }
