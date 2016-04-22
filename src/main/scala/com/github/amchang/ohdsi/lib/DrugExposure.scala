@@ -23,62 +23,71 @@ abstract class DrugExposure extends Spark {
   type ExposureCount = Int
 
   /**
+    * Cache he most recent rdd
+    */
+  private var initialData: RDD[((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])] = null
+
+  /**
     * Create the initial set of data to use for later merging
     *
     * @return the rdd to build eras from
     */
   protected val createInitialData = () => {
-    val drugExposure = loadDrugExposure()
-
-    if (drugExposure.count == 0) {
-      sparkContext.emptyRDD
-    } else {
-      val descendantConceptMappings = remainingConceptIds()
-      // no mappings
-      if (descendantConceptMappings.isEmpty) {
-        sparkContext.emptyRDD
+    if (initialData == null) {
+      val drugExposure = loadDrugExposure()
+      // we cache the data if needed
+      if (drugExposure.count == 0) {
+        initialData = sparkContext.emptyRDD
       } else {
-        val emptyDrugRecord = ((-1, -1, "", ""), List[(DateTime, DateTime)]())
-        val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
-        val dateFormat = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
+        val descendantConceptMappings = remainingConceptIds()
+        // no mappings
+        if (descendantConceptMappings.isEmpty) {
+          initialData = sparkContext.emptyRDD
+        } else {
+          val emptyDrugRecord = ((-1, -1, "", ""), List[(DateTime, DateTime)]())
+          val remainder = sparkContext.broadcast(descendantConceptMappings.toMap)
+          val dateFormat = sparkContext.broadcast(config.getString("ohdsi.dateFormat"))
 
-        // this will eliminate duplicates, one drugConceptId to one, versus many unlike the original implementation
-        val result = drugExposure.map { row =>
-          val drugConceptId = row.getString(2).toInt
-          val remainderMap = remainder.value
+          // this will eliminate duplicates, one drugConceptId to one, versus many unlike the original implementation
+          val result = drugExposure.map { row =>
+            val drugConceptId = row.getString(2).toInt
+            val remainderMap = remainder.value
 
-          // key safety
-          if (remainderMap.contains(drugConceptId)) {
-            val formatter = DateTimeFormat.forPattern(dateFormat.value)
-            val personId = row.getString(1).toInt
-            val drugExposureStartDate = formatter.parseDateTime(row.getString(3))
+            // key safety
+            if (remainderMap.contains(drugConceptId)) {
+              val formatter = DateTimeFormat.forPattern(dateFormat.value)
+              val personId = row.getString(1).toInt
+              val drugExposureStartDate = formatter.parseDateTime(row.getString(3))
 
-            // deal with the end date, if no end date
-            val daysSupply = row.getString(9)
+              // deal with the end date, if no end date
+              val daysSupply = row.getString(9)
 
-            val drugExposureEndDate = if (row.getString(4).isEmpty) {
-              if (daysSupply.isEmpty) {
-                drugExposureStartDate.plusDays(1)
+              val drugExposureEndDate = if (row.getString(4).isEmpty) {
+                if (daysSupply.isEmpty) {
+                  drugExposureStartDate.plusDays(1)
+                } else {
+                  drugExposureStartDate.plusDays(daysSupply.toInt)
+                }
               } else {
-                drugExposureStartDate.plusDays(daysSupply.toInt)
+                formatter.parseDateTime(row.getString(4))
               }
+
+              // following two can be blank, and there's no sql code substitution
+              val unitConceptId = row.getString(13)
+              val doseValue = row.getString(12)
+
+              ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue), List((drugExposureStartDate, drugExposureEndDate)))
             } else {
-              formatter.parseDateTime(row.getString(4))
+              emptyDrugRecord
             }
+          }.filter(_ != emptyDrugRecord).cache
 
-            // following two can be blank, and there's no sql code substitution
-            val unitConceptId = row.getString(13)
-            val doseValue = row.getString(12)
-
-            ((personId, remainderMap.get(drugConceptId).get, unitConceptId, doseValue), List((drugExposureStartDate, drugExposureEndDate)))
-          } else {
-            emptyDrugRecord
-          }
-        }.filter(_ != emptyDrugRecord).cache
-
-        result
+          initialData = result
+        }
       }
     }
+
+    initialData
   } : RDD[((PersonId, DrugConceptId, UnitConceptId, DoseValue), List[(DrugExposureStartDate, DrugExposureEndDate)])]
 
   /**

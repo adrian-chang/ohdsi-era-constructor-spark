@@ -35,13 +35,20 @@ class ConditionEra(implicit sparkCont: SparkContext, conf: Config = ConfigFactor
   private var mostRecentBuild: RDD[(ConditionConceptId, ConditionConceptId, DateTime, DateTime, Count)] = null
 
   /**
+    * Load the data
+    */
+  private var conditionOccurrence: DataFrame = null
+
+  /**
     * Build an entire era for drugs
     *
     * @return RDD[(PersonId, ConditionConceptId, DateTime, DateTime, Count)], similar to the results from
     *         the comparable sql query
     */
   def build: RDD[(PersonId, ConditionConceptId, DateTime, DateTime, Count)] = {
-    val conditionOccurrence = loadConditionOccurrence
+    if (conditionOccurrence == null) {
+      conditionOccurrence = loadConditionOccurrence
+    }
 
     if (conditionOccurrence.count == 0) {
       mostRecentBuild = sparkContext.emptyRDD

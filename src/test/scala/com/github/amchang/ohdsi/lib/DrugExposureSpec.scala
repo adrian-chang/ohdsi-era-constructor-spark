@@ -78,18 +78,18 @@ class DrugExposureSpec extends RDDSpec with BeforeAndAfter with MockitoSugar wit
     val drugExposureClass = classOf[DrugExposure]
     val allFields: Array[Field] = drugExposureClass.getDeclaredFields
 
-    val createInitData: Field = allFields(0)
+    val createInitData: Field = allFields(1)
     createInitData.setAccessible(true)
     createInitialData = createInitData.get(drugExposure).asInstanceOf[() => RDD[((Int, Int, String, String), List[(DateTime, DateTime)])]]
 
     // setup all of the initial data here
-    loadDrugExposure = allFields(2)
+    loadDrugExposure = allFields(3)
     loadDrugExposure.setAccessible(true)
 
-    loadConceptAncestor = allFields(3)
+    loadConceptAncestor = allFields(4)
     loadConceptAncestor.setAccessible(true)
 
-    loadConcept = allFields(4)
+    loadConcept = allFields(5)
     loadConcept.setAccessible(true)
 
     loadDrugExposure.set(drugExposure, () => {

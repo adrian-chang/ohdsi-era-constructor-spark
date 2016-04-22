@@ -41,34 +41,38 @@ object Main {
     Logger.getLogger("org").setLevel(level)
     Logger.getLogger("akka").setLevel(level)
 
+    // https://issues.apache.org/jira/browse/SPARK-12675, bit cache need local to [*]
     val sparkConfig = new SparkConf()
       .setAppName("era")
-      .setMaster("local")
+      .setMaster("local[*]")
     implicit val sparkContext = new SparkContext(sparkConfig)
     implicit val config = ConfigFactory.load()
 
+    // we benchmark the second build so any cache is built up and
+    // spark is warmed up
+
     // all of the different eras
-    var conditionEra: ConditionEra = null
+    val conditionEra: ConditionEra = new ConditionEra()
+    conditionEra.build
     time("conditionEra", {
-      conditionEra = new ConditionEra()
       conditionEra.build
     })
 
-    var doseEra: DoseEra = null
+    val doseEra: DoseEra = new DoseEra()
+    doseEra.build
     time("doseEra", {
-      doseEra = new DoseEra()
       doseEra.build
     })
 
-    var drugEraNonStockpile: DrugEra = null
+    val drugEraNonStockpile: DrugEra = new DrugEra()
+    drugEraNonStockpile.build()
     time("drugEraNonStockpile", {
-      drugEraNonStockpile = new DrugEra()
       drugEraNonStockpile.build()
     })
 
-    var drugEraStockpile: DrugEra = null
+    val drugEraStockpile: DrugEra =  new DrugEra()
+    drugEraStockpile.build(true)
     time("drugEraStockpile", {
-      drugEraStockpile = new DrugEra()
       drugEraStockpile.build(true)
     })
 
