@@ -10,17 +10,28 @@ import org.apache.spark.{SparkConf, SparkContext}
   */
 object Main {
 
-  def time[R](block: => R): R = {
-    val t0 = System.currentTimeMillis()
+  /**
+    * Time to measure performance
+    *
+    * @param era the era being measured
+    * @param block the code block to measure
+    * @tparam R Type return of code block
+    * @return R Return of R Type
+    */
+  def time[R](era: String, block: => R): R = {
+    val t0 = System.currentTimeMillis().toDouble
     val result = block    // call-by-name
-    val t1 = System.currentTimeMillis()
-    val r = (t1 - t0) / 1000
-    println("Elapsed time: " + r + "s")
+    val t1 = System.currentTimeMillis().toDouble
+    val r = (t1 - t0) / 1000.toDouble
+
+    println(s"${era} elapsed time: ${r} s")
+
     result
   }
 
   /**
     * Entry point to the entire program
+    *
     * @param args Command line arguments either from the java vm or sbt run
     *             See the README.me for all command line arguments, or application.conf
     */
@@ -37,17 +48,29 @@ object Main {
     implicit val config = ConfigFactory.load()
 
     // all of the different eras
-    val conditionEra = new ConditionEra()
-    conditionEra.build
+    var conditionEra: ConditionEra = null
+    time("conditionEra", {
+      conditionEra = new ConditionEra()
+      conditionEra.build
+    })
 
-    val doseEra = new DoseEra()
-    doseEra.build
+    var doseEra: DoseEra = null
+    time("doseEra", {
+      doseEra = new DoseEra()
+      doseEra.build
+    })
 
-    val drugEraNonStockpile = new DrugEra()
-    drugEraNonStockpile.build()
+    var drugEraNonStockpile: DrugEra = null
+    time("drugEraNonStockpile", {
+      drugEraNonStockpile = new DrugEra()
+      drugEraNonStockpile.build()
+    })
 
-    val drugEraStockpile = new DrugEra()
-    drugEraStockpile.build(true)
+    var drugEraStockpile: DrugEra = null
+    time("drugEraStockpile", {
+      drugEraStockpile = new DrugEra()
+      drugEraStockpile.build(true)
+    })
 
     // do we need to write csvs
     if (config.getBoolean("ohdsi.csv.enabled")) {

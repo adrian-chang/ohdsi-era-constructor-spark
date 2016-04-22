@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
 )
 
 // command c
-fork in run := true
+fork in run := false
 // no parallel tests
 parallelExecution in Test := false
 

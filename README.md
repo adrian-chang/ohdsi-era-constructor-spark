@@ -17,30 +17,66 @@ For smaller datasets (50-100k records processed), this project preforms about 10
 
 ## Example
 
+```
+$ ./sbt/sbt -Dohdsi.vocab.location=/Users/achang/Downloads/vocab/ -Dohdsi.data.location=/Users/achang/Downloads/cms-synpuf-1000-cdmv5-version-1-0-1/ run
+Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+[info] Loading project definition from /Users/achang/Development/ohdsi-project/project
+[info] Set current project to ohdsi-project (in build file:/Users/achang/Development/ohdsi-project/)
+[info] Compiling 1 Scala source to /Users/achang/Development/ohdsi-project/target/scala-2.11/classes...
+[info] Running com.github.amchang.ohdsi.Main
+Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+16/04/22 00:19:12 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+16/04/22 00:19:13 INFO Remoting: Starting remoting
+16/04/22 00:19:13 INFO Remoting: Remoting started; listening on addresses :[akka.tcp://sparkDriverActorSystem@192.168.31.214:54046]
+conditionEra elapsed time: 6.016 s
+doseEra elapsed time: 1.578 s
+drugEraNonStockPile elapsed time: 1.289 s
+drugEraStockpile elapsed time: 1.27 s
+writing condition era at /tmp/condition_era_1461309564685
+writing dose era at /tmp/dose_era_1461309576706
+writing drug era non stockpile at /tmp/drug_era_non_stockpile_1461309576888
+writing drug era stockpile at /tmp/drug_era_stockpile_1461309576994
+[success] Total time: 31 s, completed Apr 22, 2016 12:19:37 AM
 
-// setup postgres
-
-// setup the data model
-git@github.com:OHDSI/CommonDataModel.git
-git@github.com:OHDSI/ETL-CMS.git
-
-// remember the config
-//sql
+```
 
 ## Program Options
 
-Here are a whole list of options which can be passed to the program.
+Here are a whole list of options which can be passed to the program. HDFS file paths are supported.
 
 * `-Dohdsi.vocab.location`
-    * The location of 
+    * The location of the [vocabulary files](http://www.ohdsi.org/web/athena/). Full V5 download is required to run this program. Option is required.
 * `-Dohdsi.vocab.delimiter`
+    * CSV delimiter of the vocabulary files. Default is `\t`.     
+* `-Dohdsi.vocab.conceptAncestor`
+    * CSV File containing concept ancestor data. Default is `CONCEPT_ANCESTOR.csv`.
+* `-Dohdsi.vocab.concept`
+    * CSV File containing concept data. Default is `CONCEPT.csv`.
+* `-Dohdsi.vocab.conceptAncestor`
+    * CSV File containing concept ancestor data. Default is `CONCEPT.csv`.
+* `-Dohdsi.data.location`
+    * The location of the OMOP CDM v5 data to process. Option is required.
+* `-Dohdsi.data.conditionOccurrence`
+    * CSV File containing condition iccurrence data. Default is `CDM_CONDITION_OCCURRENCE.csv`.
+* `-Dohdsi.data.conditionOccurrence`
+    * CSV File containing drug exposure data. Default is `CDM_DRUG_EXPOSURE.csv`.
+* `-Dohdsi.cache.enabled`
+    * Do we want to cache calculations for multiple runs? Default is `true`.
+* `-Dohdsi.cache.location`
+    * Where do we want to cache calculations. Default is `/tmp` (don't add trailing slash).
+* `-Dohdsi.csv.enabled`
+    * Do we want to save results? Default is `true`.
+* `-Dohdsi.csv.location`
+    * Where do we want to save results? Default is `/tmp/` (make sure to add trailing slash).
+* `-Dohdsi.dateFormat`
+    * The date format of the data. Default is `yyyyMMdd`.
 
 ## Data
 
 There are two main options to get data to run the program (assuming you do not generate it yourself).
 
-1.
-2.
+1. Small set of [hand made data](http://forums.ohdsi.org/t/1k-sample-of-simulated-cms-synpuf-data-in-cdmv5-format-available-for-download/728).
+2. Use the [etl-cms](https://github.com/OHDSI/ETL-CMS/tree/unm-improvements/python_etl) project to generate a large set of data.
 
 ## Test
 
