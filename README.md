@@ -28,10 +28,10 @@ Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
 16/04/22 00:19:12 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
 16/04/22 00:19:13 INFO Remoting: Starting remoting
 16/04/22 00:19:13 INFO Remoting: Remoting started; listening on addresses :[akka.tcp://sparkDriverActorSystem@192.168.31.214:54046]
-conditionEra elapsed time: 6.016 s
-doseEra elapsed time: 1.578 s
-drugEraNonStockPile elapsed time: 1.289 s
-drugEraStockpile elapsed time: 1.27 s
+conditionEra elapsed time: 2.508 s
+doseEra elapsed time: 1.112 s
+drugEraNonStockpile elapsed time: 1.06 s
+drugEraStockpile elapsed time: 1.065 s
 writing condition era at /tmp/condition_era_1461309564685
 writing dose era at /tmp/dose_era_1461309576706
 writing drug era non stockpile at /tmp/drug_era_non_stockpile_1461309576888
