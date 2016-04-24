@@ -42,17 +42,17 @@ object Main {
     Logger.getLogger("akka").setLevel(level)
 
     // https://issues.apache.org/jira/browse/SPARK-12675, bit cache need local to [*]
+    implicit val config = ConfigFactory.load()
     val sparkConfig = new SparkConf()
       .setAppName("era")
       .setMaster("local[*]")
       .set("spark.executor.heartbeatInterval", "20m")
       .set("spark.network.timeout", "20m")
       .set("spark.rpc.askTimeout", "20m")
-      .set("spark.driver.memory", "8g")
+      .set("spark.driver.memory", config.getString("ohdsi.driver.memory"))
       .set("spark.executor.memory", "1g")
       .set("spark.driver.maxResultSize", "0")
     implicit val sparkContext = new SparkContext(sparkConfig)
-    implicit val config = ConfigFactory.load()
 
     // we benchmark the second build so any cache is built up and
     // spark is warmed up

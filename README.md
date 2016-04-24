@@ -71,6 +71,8 @@ Here are a whole list of options which can be passed to the program. HDFS file p
     * Where do we want to save results? Default is `/tmp/` (make sure to add trailing slash).
 * `-Dohdsi.dateFormat`
     * The date format of the data. Default is `yyyyMMdd`.
+* `-Dohdsi.driver.memory`
+    * The memory the Spark driver should use. Default is `8g`.
 
 ## Data
 
@@ -93,8 +95,10 @@ There are several deviations or variances from the [original](https://github.com
 
 1. Bug fixes
     * The results created by the [original](https://github.com/OHDSI/Era-Constructor) era-constructor project had several obvious errors that were so patched in this project.
-2. Spec Reinterpretation
+2. Spec reinterpretation
     * The era's created by [era-constructor](https://github.com/OHDSI/Era-Constructor) project are an interpretation of the DRUG_ERA, DOSE_ERA, and CONDITION_ERA of the [CDM v5 Data Model](http://www.ohdsi.org/web/wiki/doku.php?id=documentation:cdm:standardized_derived_elements). This project also inteprets those same specifications however differs in some minor ways leading to differences in results between comparing the original project to this project.
+3. Memory usage and other settings
+    * If you to change the Spark or Memory settings that are not configurable, you will need to modify the `sbt/sbt` script and `Main.scala`.
 
 ## Future Work
 
