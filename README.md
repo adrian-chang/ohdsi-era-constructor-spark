@@ -14,6 +14,7 @@ For smaller datasets (50-100k records processed), this project preforms about 10
 
 * JDK > 8
 * Persistent internet connection
+* More than 8GB of RAM (configurable, however very very recommended)
 
 ## Example
 
